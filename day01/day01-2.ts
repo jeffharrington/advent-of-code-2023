@@ -1,6 +1,17 @@
 import * as fsPromise from "fs/promises";
 
 const FILEPATH = "./day01/input.txt";
+const NUMBER_MAP: Record<string, string> = {
+  one: "1",
+  two: "2",
+  three: "3",
+  four: "4",
+  five: "5",
+  six: "6",
+  seven: "7",
+  eight: "8",
+  nine: "9",
+};
 
 (async () => {
   const fileContent = await fsPromise.readFile(FILEPATH, "utf-8");
@@ -10,27 +21,15 @@ const FILEPATH = "./day01/input.txt";
     const numbersInLine = [];
     for (let i = 0; i < line.length; i++) {
       if (!isNaN(parseInt(line[i]))) {
+        // If it's a number, just push it
         numbersInLine.push(line[i]);
       } else {
-        if (line.substring(i).startsWith("one")) {
-          numbersInLine.push("1");
-        } else if (line.substring(i).startsWith("two")) {
-          numbersInLine.push("2");
-        } else if (line.substring(i).startsWith("three")) {
-          numbersInLine.push("3");
-        } else if (line.substring(i).startsWith("four")) {
-          numbersInLine.push("4");
-        } else if (line.substring(i).startsWith("five")) {
-          numbersInLine.push("5");
-        } else if (line.substring(i).startsWith("six")) {
-          numbersInLine.push("6");
-        } else if (line.substring(i).startsWith("seven")) {
-          numbersInLine.push("7");
-        } else if (line.substring(i).startsWith("eight")) {
-          numbersInLine.push("8");
-        } else if (line.substring(i).startsWith("nine")) {
-          numbersInLine.push("9");
-        }
+        // If it's not a number, check if it's a number word
+        Object.keys(NUMBER_MAP).forEach((key: string) => {
+          if (line.substring(i).startsWith(key)) {
+            numbersInLine.push(NUMBER_MAP[key]);
+          }
+        });
       }
     }
     const firstNumber = numbersInLine[0];
