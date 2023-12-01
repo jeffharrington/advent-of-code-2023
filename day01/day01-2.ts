@@ -1,21 +1,24 @@
 import * as fsPromise from "fs/promises";
 
-const FILEPATH = "./day01/input.txt";
-const NUMBER_MAP: Record<string, string> = {
-  one: "1",
-  two: "2",
-  three: "3",
-  four: "4",
-  five: "5",
-  six: "6",
-  seven: "7",
-  eight: "8",
-  nine: "9",
-};
-
-(async () => {
-  const fileContent = await fsPromise.readFile(FILEPATH, "utf-8");
+/**
+ * Day 1: Trebuchet?!
+ * https://adventofcode.com/2023/day/1
+ */
+(async (filepath = "./day01/input.txt") => {
+  const fileContent = await fsPromise.readFile(filepath, "utf-8");
   const lines = fileContent.split("\n");
+
+  const NUMBER_MAP: Record<string, string> = {
+    one: "1",
+    two: "2",
+    three: "3",
+    four: "4",
+    five: "5",
+    six: "6",
+    seven: "7",
+    eight: "8",
+    nine: "9",
+  };
 
   const allNumbers = lines.map((line) => {
     const numbersInLine = [];

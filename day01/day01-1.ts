@@ -1,9 +1,11 @@
 import * as fsPromise from "fs/promises";
 
-const FILEPATH = "./day01/input.txt";
-
-(async () => {
-  const fileContent = await fsPromise.readFile(FILEPATH, "utf-8");
+/**
+ * Day 1: Trebuchet?!
+ * https://adventofcode.com/2023/day/1
+ */
+(async (filepath = "./day01/input.txt") => {
+  const fileContent = await fsPromise.readFile(filepath, "utf-8");
   const lines = fileContent.split("\n");
 
   const allNumbers = lines.map((line) => {
