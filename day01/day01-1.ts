@@ -1,7 +1,7 @@
 import * as fsPromise from "fs/promises";
 
 /**
- * Day 1: Trebuchet?!
+ * Day 1: Trebuchet?! (Part 1)
  * https://adventofcode.com/2023/day/1
  */
 (async (filepath = "./day01/input.txt") => {
