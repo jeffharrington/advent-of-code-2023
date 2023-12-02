@@ -15,11 +15,15 @@
   "license": "ISC",
   "homepage": "https://github.com/jeffharrington/advent-of-code-2023#readme",
   "devDependencies": {
-    "@types/node": "^20.10.2",
+    "@types/node": "^18.17.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.3.2"
   },
   "dependencies": {
     "nstall": "^0.2.0"
+  },
+  "engines" : {
+    "npm" : ">=9.0.0 <10.0.0",
+    "node" : ">=18.0.0 <20.0.0"
   }
 }
