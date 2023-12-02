@@ -10,9 +10,6 @@ const process = (lines: string[]) => {
     const regex = /(\d+) (blue|red|green)(;?)/gm;
     let powersSum = 0;
     lines.forEach((line) => {
-        if (line.trim().length === 0) {
-            return;
-        }
         const cubes: Record<string, number> = {
             red: 0,
             green: 0,
@@ -36,7 +33,7 @@ const process = (lines: string[]) => {
                 cubes.blue = 0;
             }
         }
-        powersSum += (minimums.red * minimums.green * minimums.blue);
+        powersSum += minimums.red * minimums.green * minimums.blue;
     });
     console.log(powersSum);
 };
