@@ -8,32 +8,29 @@ import { dirname } from "path";
  */
 const process = (lines: string[]) => {
     const regex = /(\d+) (blue|red|green)(;?)/gm;
-    let gameSum = 0;
-    lines.forEach((line, index) => {
+    const possibleGameIndexes = lines.map((line, index) => {
         const cubes: Record<string, number> = {
             red: 0,
             green: 0,
             blue: 0,
         };
-        let possible = true;
-        let match;
-        while ((match = regex.exec(line)) !== null) {
+        const matches = [...line.matchAll(regex)];
+        const possibilities = matches.map((match, match_index) => {
             cubes[match[2]] += parseInt(match[1]);
-            const isFinalMatch = match.index + match[0].length === regex.lastIndex;
-            if (match[3] === ";" || isFinalMatch) {
+            if (match[3] === ";" || match_index === matches.length - 1) {
                 if (!(cubes.red <= 12 && cubes.green <= 13 && cubes.blue <= 14)) {
-                    possible = false;
+                    return false; // not possible
                 }
                 cubes.red = 0;
                 cubes.green = 0;
                 cubes.blue = 0;
             }
-        }
-        if (possible) {
-            gameSum += index + 1;
-        }
+            return true; // possible
+        });
+        return possibilities.every((possible) => possible) ? index + 1 : 0;
     });
-    console.log(gameSum);
+    const possibleGameIndexesSum = possibleGameIndexes.reduce((a, b) => a + b, 0);
+    console.log(possibleGameIndexesSum);
 };
 
 const FILENAME = "input.txt";

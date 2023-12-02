@@ -8,8 +8,7 @@ import { dirname } from "path";
  */
 const process = (lines: string[]) => {
     const regex = /(\d+) (blue|red|green)(;?)/gm;
-    let powersSum = 0;
-    lines.forEach((line) => {
+    const powers = lines.map((line) => {
         const cubes: Record<string, number> = {
             red: 0,
             green: 0,
@@ -20,11 +19,10 @@ const process = (lines: string[]) => {
             green: 0,
             blue: 0,
         };
-        let match;
-        while ((match = regex.exec(line)) !== null) {
+        const matches = [...line.matchAll(regex)];
+        matches.forEach((match, match_index) => {
             cubes[match[2]] += parseInt(match[1]);
-            const isFinalMatch = match.index + match[0].length === regex.lastIndex;
-            if (match[3] === ";" || isFinalMatch) {
+            if (match[3] === ";" || match_index === matches.length - 1) {
                 minimums.red = Math.max(minimums.red, cubes.red);
                 minimums.green = Math.max(minimums.green, cubes.green);
                 minimums.blue = Math.max(minimums.blue, cubes.blue);
@@ -32,9 +30,10 @@ const process = (lines: string[]) => {
                 cubes.green = 0;
                 cubes.blue = 0;
             }
-        }
-        powersSum += minimums.red * minimums.green * minimums.blue;
+        });
+        return minimums.red * minimums.green * minimums.blue;
     });
+    const powersSum = powers.reduce((a, b) => a + b, 0);
     console.log(powersSum);
 };
 
