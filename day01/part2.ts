@@ -18,26 +18,21 @@ const process = (lines: string[]) => {
         eight: "8",
         nine: "9",
     };
-    const allNumbers = lines.map((line) => {
-        const numbersInLine = [];
-        for (let i = 0; i < line.length; i++) {
-            if (!isNaN(parseInt(line[i]))) {
-                // If it's a number, just push it
-                numbersInLine.push(line[i]);
+    const regex = /(?=(\d|one|two|three|four|five|six|seven|eight|nine))/gm;
+    const lineNumbers = lines.map((line) => {
+        const matches = [...line.matchAll(regex)];
+        const numbers = matches.map((match) => {
+            if (!isNaN(parseInt(match[1]))) {
+                return match[1];
             } else {
-                // If it's not a number, check if it's a number word
-                Object.keys(NUMBER_MAP).forEach((key: string) => {
-                    if (line.substring(i).startsWith(key)) {
-                        numbersInLine.push(NUMBER_MAP[key]);
-                    }
-                });
+                return NUMBER_MAP[match[1]];
             }
-        }
-        const firstNumber = numbersInLine[0];
-        const lastNumber = numbersInLine[numbersInLine.length - 1];
+        });
+        const firstNumber = numbers[0];
+        const lastNumber = numbers[numbers.length - 1];
         return parseInt(firstNumber + lastNumber);
     });
-    const sum = allNumbers.reduce((a, b) => a + b, 0);
+    const sum = lineNumbers.reduce((a, b) => a + b, 0);
     console.log(sum);
 };
 
