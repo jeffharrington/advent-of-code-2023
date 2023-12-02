@@ -3,7 +3,7 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 
 /**
- * Day 2: Cube Conundrum
+ * Day 2: Cube Conundrum (Part 1)
  * https://adventofcode.com/2023/day/2
  */
 const process = (lines: string[]) => {
