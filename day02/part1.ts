@@ -30,7 +30,7 @@ const process = (lines: string[]) => {
         return possibilities.every((possible) => possible) ? index + 1 : 0;
     });
     const possibleGameIndexesSum = possibleGameIndexes.reduce((a, b) => a + b, 0);
-    console.log(possibleGameIndexesSum);
+    return possibleGameIndexesSum;
 };
 
 const FILENAME = "input.txt";
@@ -41,5 +41,6 @@ const FILENAME = "input.txt";
     const filepath = `${__dirname}/${FILENAME}`;
     const fileContent = await readFile(filepath, "utf-8");
     const lines = fileContent.split("\n");
-    process(lines);
+    const answer = process(lines);
+    console.log(answer);
 })();
