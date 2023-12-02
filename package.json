@@ -1,8 +1,8 @@
 {
   "name": "advent-of-code-2023",
+  "author": "Jeffrey Harrington",
   "version": "1.0.0",
   "description": "Solutions to Advent of Code 2023",
-  "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "ts-node --esm"
@@ -12,11 +12,7 @@
     "url": "git+https://github.com/jeffharrington/advent-of-code-2023.git"
   },
   "keywords": [],
-  "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/jeffharrington/advent-of-code-2023/issues"
-  },
   "homepage": "https://github.com/jeffharrington/advent-of-code-2023#readme",
   "devDependencies": {
     "@types/node": "^20.10.2",
