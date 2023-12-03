@@ -15,14 +15,15 @@ const process = (lines: string[]) => {
     const symbolNumbers = Object.keys(symbolCoordinates).flatMap((coordinate) => {
         const [row, col] = coordinate.split(",").map((value) => parseInt(value));
         const adjacentCoordinates = getAdjacentCoordinates(row, col, height, width);
-        const adjacentNumbers: Set<number> = new Set();
-        adjacentCoordinates.forEach((coordinate) => {
+        const adjacentNumbersFound = adjacentCoordinates.flatMap((coordinate) => {
             if (numberCoordinates[coordinate.toString()] !== undefined) {
                 // Number found at adjacent coordinate
-                adjacentNumbers.add(numberCoordinates[coordinate.toString()]);
+                return [numberCoordinates[coordinate.toString()]];
+            } else {
+                return [];
             }
         });
-        return Array.from(adjacentNumbers);
+        return Array.from(new Set(adjacentNumbersFound)); // Remove duplicates
     });
 
     const symbolNumbersSum = symbolNumbers.reduce((a, b) => a + b, 0);
