@@ -30,8 +30,10 @@ const process = (lines: string[]) => {
     return possibleGameIndexesSum;
 };
 
+/**
+ * Main execution function
+ */
 const FILENAME = "input.txt";
-
 (async () => {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);

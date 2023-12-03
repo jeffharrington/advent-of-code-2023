@@ -96,8 +96,8 @@ const getAdjacentCoordinates = (
 /**
  * Main execution function
  */
+const FILENAME = "input.txt";
 (async () => {
-    const FILENAME = "input.test.txt";
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
     const filepath = `${__dirname}/${FILENAME}`;
