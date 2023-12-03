@@ -12,8 +12,7 @@ const process = (lines: string[]) => {
 
     const { numberCoordinates, symbolCoordinates } = buildCoordinateMaps(lines);
 
-    const numbersFound: number[] = [];
-    Object.keys(symbolCoordinates).forEach((coordinate) => {
+    const symbolNumbers = Object.keys(symbolCoordinates).flatMap((coordinate) => {
         const [row, col] = coordinate.split(",").map((value) => parseInt(value));
         const adjacentCoordinates = getAdjacentCoordinates(row, col, height, width);
         const adjacentNumbers: Set<number> = new Set();
@@ -23,11 +22,11 @@ const process = (lines: string[]) => {
                 adjacentNumbers.add(numberCoordinates[coordinate.toString()]);
             }
         });
-        numbersFound.push(...Array.from(adjacentNumbers));
+        return Array.from(adjacentNumbers);
     });
 
-    const numbersFoundSum = [...numbersFound].reduce((a, b) => a + b, 0);
-    return numbersFoundSum;
+    const symbolNumbersSum = symbolNumbers.reduce((a, b) => a + b, 0);
+    return symbolNumbersSum;
 };
 
 /**
@@ -98,7 +97,7 @@ const getAdjacentCoordinates = (
  * Main execution function
  */
 (async () => {
-    const FILENAME = "input.txt";
+    const FILENAME = "input.test.txt";
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
     const filepath = `${__dirname}/${FILENAME}`;

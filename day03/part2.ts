@@ -12,13 +12,12 @@ const process = (lines: string[]) => {
 
     const { numberCoordinates, symbolCoordinates } = buildCoordinateMaps(lines);
 
-    const gearRatiosFound: number[] = [];
-    Object.keys(symbolCoordinates).forEach((coordinate) => {
-        const adjacentNumbers: Set<number> = new Set();
-        if (symbolCoordinates[coordinate] !== "*") return; // Skip if not a gear
+    const gearRatios = Object.keys(symbolCoordinates).map((coordinate) => {
+        if (symbolCoordinates[coordinate] !== "*") return 0; // Skip if not a gear
         const [row, col] = coordinate.split(",").map((value) => parseInt(value));
-        const adjacent = getAdjacentCoordinates(row, col, height, width);
-        adjacent.forEach((coordinate) => {
+        const adjacentCoordinates = getAdjacentCoordinates(row, col, height, width);
+        const adjacentNumbers: Set<number> = new Set();
+        adjacentCoordinates.forEach((coordinate) => {
             if (numberCoordinates[coordinate.toString()] !== undefined) {
                 // Number found at adjacent coordinate
                 adjacentNumbers.add(numberCoordinates[coordinate.toString()]);
@@ -27,11 +26,13 @@ const process = (lines: string[]) => {
         if (adjacentNumbers.size === 2) {
             const adjacentNumbersArray = Array.from(adjacentNumbers);
             const gearRatio = adjacentNumbersArray[0] * adjacentNumbersArray[1];
-            gearRatiosFound.push(gearRatio);
+            return gearRatio;
+        } else {
+            return 0;
         }
     });
 
-    const gearRatiosSum = [...gearRatiosFound].reduce((a, b) => a + b, 0);
+    const gearRatiosSum = gearRatios.reduce((a, b) => a + b, 0);
     return gearRatiosSum;
 };
 
@@ -103,7 +104,7 @@ const getAdjacentCoordinates = (
  * Main execution function
  */
 (async () => {
-    const FILENAME = "input.txt";
+    const FILENAME = "input.test.txt";
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
     const filepath = `${__dirname}/${FILENAME}`;
