@@ -7,30 +7,32 @@ import { dirname } from "path";
  * https://adventofcode.com/2023/day/4
  */
 const process = (lines: string[]) => {
-    // const copyCounts: Record<number, number> = {};
-    const totalCounts: Record<number, number> = {};
-    lines.forEach((line, index) => {
-        const gameNumber = index + 1;
-        totalCounts[gameNumber] = totalCounts[gameNumber] || 0;
-        totalCounts[gameNumber] += 1;
-        const [_, allNumbersStr] = line.split(": ");
-        const [winningStr, cardStr] = allNumbersStr.split(" | ");
-        const winningNumbers = new Set(
-            winningStr.split(" ").flatMap((str) => (str.trim() ? [parseInt(str.trim())] : [])),
-        );
-        const cardNumbers = new Set(
-            cardStr.split(" ").flatMap((str) => (str.trim() ? [parseInt(str.trim())] : [])),
-        );
-        const commonNumbers = new Set(
-            Array.from(cardNumbers).filter((num) => winningNumbers.has(num)),
-        );
-        const numWinners = commonNumbers.size;
-        for (let i = 0; i < numWinners; i++) {
-            const nextGameNumber = gameNumber + i + 1;
-            totalCounts[nextGameNumber] = totalCounts[nextGameNumber] || 0;
-            totalCounts[nextGameNumber] += totalCounts[gameNumber];
-        }
-    });
+    const totalCounts: Record<string, number> = lines.reduce(
+        (counts: Record<string, number>, line, index) => {
+            const gameNumber = index + 1;
+            counts[gameNumber] = counts[gameNumber] || 0;
+            counts[gameNumber] += 1;
+            const [_, allNumbersStr] = line.split(": ");
+            const [winningStr, cardStr] = allNumbersStr.split(" | ");
+            const winningNumbers = new Set(
+                winningStr.split(" ").flatMap((str) => (str.trim() ? [parseInt(str.trim())] : [])),
+            );
+            const cardNumbers = new Set(
+                cardStr.split(" ").flatMap((str) => (str.trim() ? [parseInt(str.trim())] : [])),
+            );
+            const commonNumbers = new Set(
+                Array.from(cardNumbers).filter((num) => winningNumbers.has(num)),
+            );
+            const numWinners = commonNumbers.size;
+            Array.from({ length: numWinners }).forEach((_, i) => {
+                const nextGameNumber = gameNumber + i + 1;
+                counts[nextGameNumber] = counts[nextGameNumber] || 0;
+                counts[nextGameNumber] += counts[gameNumber];
+            });
+            return counts;
+        },
+        {},
+    );
     const totalSum = Object.values(totalCounts).reduce((a, b) => a + b, 0);
     return totalSum;
 };
