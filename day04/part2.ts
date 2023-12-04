@@ -1,4 +1,4 @@
-import { readFile } from "fs/promises";
+import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
@@ -45,7 +45,7 @@ const FILENAME = "input.txt";
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
     const filepath = `${__dirname}/${FILENAME}`;
-    const fileContent = await readFile(filepath, "utf-8");
+    const fileContent = readFileSync(filepath, "utf-8");
     const lines = fileContent.split("\n");
     const answer = process(lines);
     console.log(answer);
