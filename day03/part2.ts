@@ -53,10 +53,10 @@ const buildCoordinateMaps = (lines: string[]) => {
                 symbolCoordinates[symbolCoordinate] = match[0];
             } else {
                 // We found a number
-                for (let i = 0; i < match[0].length; i++) {
+                Array.from({ length: match[0].length }).forEach((_, i) => {
                     const numCoordinate = [row_index, match_index + i].toString();
                     numberCoordinates[numCoordinate] = parseInt(match[0]);
-                }
+                });
             }
         });
     });
