@@ -5,7 +5,7 @@
   "description": "Solutions to Advent of Code 2023",
   "type": "module",
   "scripts": {
-    "start": "NODE_OPTIONS='--max-old-space-size=32768' ts-node --esm"
+    "start": "NODE_OPTIONS='--max-old-space-size=8192' ts-node --esm"
   },
   "repository": {
     "type": "git",

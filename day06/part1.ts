@@ -8,22 +8,18 @@ import { dirname } from "path";
  */
 const process = (lines: string[]) => {
     const numbersRegex = /(\d+)/gm;
-
     const times = lines.flatMap((line) => {
         return line.includes("Time:")
             ? [...line.matchAll(numbersRegex)].map((match) => parseInt(match[0]))
             : [];
     });
-
     const distances = lines.flatMap((line) => {
         return line.includes("Distance:")
             ? [...line.matchAll(numbersRegex)].map((match) => parseInt(match[0]))
             : [];
     });
-
     const wins: number[] = [];
     times.forEach((time, i) => {
-        // console.log("distance", distances[i], times);
         let numWins = 0;
         Array.from({ length: time }).forEach((_, tick) => {
             const travelSpeed = tick;
@@ -32,10 +28,7 @@ const process = (lines: string[]) => {
             if (win) {
                 numWins += 1;
             }
-            // console.log("hold for", tick, ", travel", travelSpeed, "distance", distance, (win ? "WIN" : ""));
         });
-        // console.log("numWins", numWins);
-        // console.log("-----");
         wins.push(numWins);
     });
     return wins.reduce((a, b) => a * b, 1);
