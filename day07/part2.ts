@@ -16,9 +16,8 @@ interface Hand {
  */
 const process = (lines: string[]) => {
     const cardRank = ["J", "2", "3", "4", "5", "6", "7", "8", "9", "T", "Q", "K", "A"];
+    const JOKER_CARD = "J";
     const hands: Hand[] = lines.map((line) => {
-        console.log("------------------------------------------");
-        console.log(line);
         const [cards, bid] = line.split(" ");
         const hand: Hand = {
             cards: Array.from(cards),
@@ -30,25 +29,13 @@ const process = (lines: string[]) => {
         hand.counts = hand.cards.reduce((acc: Record<string, number>, curr) => {
             acc[curr] = acc[curr] || 0;
             acc[curr] += 1;
-            if (curr === "J") {
+            if (curr === JOKER_CARD) {
                 hand.num_jokers += 1;
             }
             return acc;
         }, {});
-        const sortedCards = Array.from(
-            new Set(
-                Array.from(hand.cards).sort((card1, card2) => {
-                    if (cardRank.indexOf(card1) < cardRank.indexOf(card2)) {
-                        return 1;
-                    } else if (cardRank.indexOf(card1) > cardRank.indexOf(card2)) {
-                        return -1;
-                    }
-                    return 0;
-                }),
-            ),
-        );
-        const bestCards = hand.cards
-            .filter((card) => card !== "J")
+        const sortedCards = hand.cards
+            .filter((card) => card !== JOKER_CARD)
             .sort((card1, card2) => {
                 if (hand.counts[card1] > hand.counts[card2]) {
                     return -1;
@@ -62,44 +49,22 @@ const process = (lines: string[]) => {
                     return 0;
                 }
             });
-
-        let bestCard = "";
-        if (bestCards.length > 0) {
-            bestCard = bestCards[0];
-        } else {
-            bestCard = "J";
-        }
-
-        console.log("bestCard", bestCard);
+        const bestCard = sortedCards.length > 0 ? sortedCards[0] : JOKER_CARD;
         hand.strength = Object.keys(hand.counts).reduce((acc: number, key: string) => {
             let count = hand.counts[key];
-            if (key === "J") {
+            if (key === JOKER_CARD) {
                 if (hand.counts[key] == 5) {
-                    return acc + 7;  // All J's = 7
+                    return acc + count ** 2; // "all jokers" is 5 of a kind
                 } else {
-                    return acc;  // Jokers are not counted
+                    return acc; // Jokers are not counted in strength
                 }
+            } else if (key == bestCard) {
+                count += hand.counts[JOKER_CARD] || 0; // Add jokers to best card's count
             }
-            if (key == bestCard) count += hand.num_jokers;
-            let score = 0;
-            if (count === 1) {
-                score += 0;
-            } else if (count === 2) {
-                score += 1;
-            } else if (count === 3) {
-                score += 3;
-            } else if (count === 4) {
-                score += 5;
-            } else if (count === 5) {
-                score += 7;
-            }
-            console.log("card", key, "count", count, "score", score);
-            return acc + score;
+            return acc + count ** 2; // Score is count^2
         }, 0);
-        console.log(hand);
         return hand;
     });
-
     const sortedHands = Array.from(hands).sort((hand1, hand2) => {
         if (hand1.strength < hand2.strength) {
             return -1;
@@ -116,14 +81,9 @@ const process = (lines: string[]) => {
         }
         return 0;
     });
-
-    console.log("Sorted Hands ------------------------------------------\n");
-
     const winnings = sortedHands.map((hand, index) => {
         const rank = index + 1;
-        const winning = hand.bid * rank;
-        console.log(hand.cards.join(""), "-", hand.strength, "-", rank, "*", hand.bid, "=", winning);
-        return winning;
+        return hand.bid * rank;
     });
     return winnings.reduce((a, c) => a + c, 0);
 };

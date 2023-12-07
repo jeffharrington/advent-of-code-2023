@@ -23,20 +23,7 @@ const process = (lines: string[]) => {
             return acc;
         }, {});
         hand.strength = Object.keys(handCounts).reduce((acc: number, key: string) => {
-            const count = handCounts[key];
-            let score = 0;
-            if (count === 1) {
-                score += 0;
-            } else if (count === 2) {
-                score += 1;
-            } else if (count === 3) {
-                score += 3;
-            } else if (count === 4) {
-                score += 5;
-            } else if (count === 5) {
-                score += 7;
-            }
-            return acc + score;
+            return acc + handCounts[key] ** 2; // Score is count^2
         }, 0);
         return hand;
     });
@@ -58,8 +45,7 @@ const process = (lines: string[]) => {
     });
     const winnings = sortedHands.map((hand, index) => {
         const rank = index + 1;
-        const winning = hand.bid * rank;
-        return winning;
+        return hand.bid * rank;
     });
     return winnings.reduce((a, c) => a + c, 0);
 };
@@ -67,7 +53,7 @@ const process = (lines: string[]) => {
 /**
  * Main execution function
  */
-const FILENAME = "input.txt";
+const FILENAME = "input.test.txt";
 (async () => {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
