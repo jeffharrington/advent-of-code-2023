@@ -7,11 +7,10 @@ interface Hand {
     counts: Record<string, number>;
     strength: number;
     bid: number;
-    num_jokers: number;
 }
 
 /**
- * Day 7: Camel Cards (Part 1)
+ * Day 7: Camel Cards (Part 2)
  * https://adventofcode.com/2023/day/7
  */
 const process = (lines: string[]) => {
@@ -24,14 +23,10 @@ const process = (lines: string[]) => {
             bid: parseInt(bid),
             strength: 0,
             counts: {},
-            num_jokers: 0,
         };
-        hand.counts = hand.cards.reduce((acc: Record<string, number>, curr) => {
-            acc[curr] = acc[curr] || 0;
-            acc[curr] += 1;
-            if (curr === JOKER_CARD) {
-                hand.num_jokers += 1;
-            }
+        hand.counts = hand.cards.reduce((acc: Record<string, number>, card) => {
+            acc[card] = acc[card] || 0;
+            acc[card] += 1;
             return acc;
         }, {});
         const sortedCards = hand.cards
@@ -54,7 +49,7 @@ const process = (lines: string[]) => {
             let count = hand.counts[key];
             if (key === JOKER_CARD) {
                 if (hand.counts[key] == 5) {
-                    return acc + count ** 2; // "all jokers" is 5 of a kind
+                    return acc + count ** 2; // "5 Jokers" is scored as a 5 of a kind
                 } else {
                     return acc; // Jokers are not counted in strength
                 }

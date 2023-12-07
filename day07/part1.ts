@@ -53,7 +53,7 @@ const process = (lines: string[]) => {
 /**
  * Main execution function
  */
-const FILENAME = "input.test.txt";
+const FILENAME = "input.txt";
 (async () => {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
