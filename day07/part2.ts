@@ -25,8 +25,7 @@ const process = (lines: string[]) => {
             counts: {},
         };
         hand.counts = hand.cards.reduce((acc: Record<string, number>, card) => {
-            acc[card] = acc[card] || 0;
-            acc[card] += 1;
+            acc[card] = (acc[card] || 0) + 1;
             return acc;
         }, {});
         const sortedCards = hand.cards
@@ -45,10 +44,9 @@ const process = (lines: string[]) => {
                 }
             });
         const bestCard = sortedCards.length > 0 ? sortedCards[0] : JOKER_CARD;
-        hand.strength = Object.keys(hand.counts).reduce((acc: number, key: string) => {
-            let count = hand.counts[key];
+        hand.strength = Object.entries(hand.counts).reduce((acc: number, [key, count]) => {
             if (key === JOKER_CARD) {
-                if (hand.counts[key] == 5) {
+                if (count == 5) {
                     return acc + count ** 2; // "5 Jokers" is scored as a 5 of a kind
                 } else {
                     return acc; // Jokers are not counted in strength
@@ -86,13 +84,15 @@ const process = (lines: string[]) => {
 /**
  * Main execution function
  */
-const FILENAME = "input.txt";
-(async () => {
+function main(filename: string): number {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
-    const filepath = `${__dirname}/${FILENAME}`;
+    const filepath = `${__dirname}/${filename}`;
     const fileContent = readFileSync(filepath, "utf-8");
     const lines = fileContent.split("\n");
     const answer = process(lines);
     console.log(answer);
-})();
+    return answer;
+}
+
+main("input.txt");

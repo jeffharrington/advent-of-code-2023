@@ -17,13 +17,12 @@ const process = (lines: string[]) => {
     const hands: Hand[] = lines.map((line) => {
         const [cards, bid] = line.split(" ");
         const hand: Hand = { cards: Array.from(cards), bid: parseInt(bid), strength: 0 };
-        const handCounts = hand.cards.reduce((acc: Record<string, number>, curr) => {
-            acc[curr] = acc[curr] || 0;
-            acc[curr] += 1;
+        const cardCounts = hand.cards.reduce((acc: Record<string, number>, card) => {
+            acc[card] = (acc[card] || 0) + 1;
             return acc;
         }, {});
-        hand.strength = Object.keys(handCounts).reduce((acc: number, key: string) => {
-            return acc + handCounts[key] ** 2; // Score is count^2
+        hand.strength = Object.values(cardCounts).reduce((acc: number, count: number) => {
+            return acc + count ** 2; // Score is count^2
         }, 0);
         return hand;
     });
@@ -53,13 +52,15 @@ const process = (lines: string[]) => {
 /**
  * Main execution function
  */
-const FILENAME = "input.txt";
-(async () => {
+function main(filename: string): number {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
-    const filepath = `${__dirname}/${FILENAME}`;
+    const filepath = `${__dirname}/${filename}`;
     const fileContent = readFileSync(filepath, "utf-8");
     const lines = fileContent.split("\n");
     const answer = process(lines);
     console.log(answer);
-})();
+    return answer;
+}
+
+main("input.txt");
