@@ -15,7 +15,7 @@ const process = (lines: string[]) => {
             .reduce((acc, curr) => {
                 return (acc += curr[curr.length - 1]);
             }, 0);
-        return (acc += nextSequence);
+        return acc + nextSequence;
     }, 0);
     return sum;
 };

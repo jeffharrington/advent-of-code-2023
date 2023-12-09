@@ -18,8 +18,8 @@ const process = (lines: string[]) => {
             ? [...line.matchAll(numbersRegex)].map((match) => parseInt(match[0]))
             : [];
     });
-    const time = parseInt(Array.from(times).reduce((acc, curr) => (acc += curr), ""));
-    const recordDistance = parseInt(Array.from(distances).reduce((acc, curr) => (acc += curr), ""));
+    const time = parseInt(Array.from(times).reduce((acc, curr) => acc + curr, ""));
+    const recordDistance = parseInt(Array.from(distances).reduce((acc, curr) => acc + curr, ""));
     let numWins = 0;
     Array.from({ length: time }).forEach((_, travelSpeed) => {
         const distance = travelSpeed * (time - travelSpeed);
