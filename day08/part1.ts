@@ -18,17 +18,17 @@ const process = (lines: string[]) => {
         }
         return acc;
     }, {});
-    let step = 0;
-    let curr = "AAA";
-    while (true) {
-        if (curr === "ZZZ") break;
-        const move = moves[step % moves.length];
-        const [left, right] = table[curr];
-        curr = move === "L" ? left : right;
-        step += 1;
-    }
+    const step = getSteps(table, moves, "AAA", 0);
     return step;
 };
+
+function getSteps(table: Record<string, string[]>, moves: string, curr: string, step: number) {
+    if (curr === "ZZZ") return step;
+    const move = moves[step % moves.length];
+    const [left, right] = table[curr];
+    const next = move === "L" ? left : right;
+    return getSteps(table, moves, next, step + 1);
+}
 
 /**
  * Main execution function

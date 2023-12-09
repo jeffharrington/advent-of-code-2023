@@ -5,7 +5,7 @@ Solutions to [Advent of Code 2023](https://adventofcode.com/2023)
 My goal this year is to complete the solutions using [purely functional](https://en.wikipedia.org/wiki/Purely_functional_programming) code in strict [TypeScript](https://www.typescriptlang.org/).
 
 # Running
-You can run a day's exercise using the `npm start` command like so:
+You can run a day's exercise using the `bun` command like so:
 ```
-npm start day01/part1.ts
+bun day01/part1.ts
 ```
