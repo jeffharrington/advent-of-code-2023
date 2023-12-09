@@ -64,13 +64,14 @@ const process = (lines: string[]) => {
 /**
  * Main execution function
  */
-const FILENAME = "input.test.txt";
-(async () => {
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = dirname(__filename);
-    const filepath = `${__dirname}/${FILENAME}`;
+function main(filename: string): number {
+    const currentDirectory = dirname(fileURLToPath(import.meta.url));
+    const filepath = `${currentDirectory}/${filename}`;
     const fileContent = readFileSync(filepath, "utf-8");
     const lines = fileContent.split("\n");
     const answer = process(lines);
     console.log(answer);
-})();
+    return answer;
+}
+
+main("input.txt");
