@@ -3,7 +3,7 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 
 /**
- * Day 8: Haunted Wasteland (Part 1)
+ * Day 8: Haunted Wasteland (Part 2)
  * https://adventofcode.com/2023/day/8
  */
 const process = (lines: string[]) => {
