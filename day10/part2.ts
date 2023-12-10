@@ -7,176 +7,129 @@ import { dirname } from "path";
  * https://adventofcode.com/2023/day/10
  */
 const process = (lines: string[]) => {
-    let matrix: string[][] = [];
-    let startingPoint: number[] = [0, 0];
-    lines.forEach((line, row) => {
-        console.log(line);
-        matrix.push(line.split(""));
-        if (line.includes("S")) {
-            startingPoint = [row, line.indexOf("S")];
+    const matrix: string[][] = lines.map((line) => line.split(""));
+    const startingPoint = matrix.flatMap((row, row_index) => {
+        const colIndex = row.indexOf("S");
+        if (colIndex !== -1) {
+            return [row_index, colIndex];
+        } else {
+            return [];
         }
     });
-    let curr = startingPoint;
-    // console.log("Starting at", curr);
-    const validCoords = getValidCoords(startingPoint, matrix);
-    const leftDistance = visit(startingPoint, validCoords[0], matrix, { [curr.toString()]: 0 }, 1);
-    // console.log("\nReStarting at", curr);
-    const rightDistance = visit(startingPoint, validCoords[1], matrix, { [curr.toString()]: 0 }, 1);
-    // console.log("Left:", leftDistance);
-    // console.log("Right:", rightDistance);
-    const finalDistance: Record<string, number> = {};
-    Object.keys(leftDistance).forEach((key) => {
-        finalDistance[key] = Math.min(leftDistance[key], rightDistance[key]);
-    });
-    // Get boundaries of maze
-    let minRow: number | null = null;
-    let maxRow: number | null = null;
-    let minCol: number | null = null;
-    let maxCol: number | null = null;
-    Object.keys(finalDistance).forEach((key) => {
-        const [row, col] = key.split(",").map((x) => parseInt(x));
-        minRow = Math.min(minRow || Number.MAX_VALUE, row);
-        maxRow = Math.max(maxRow || 0, row);
-        minCol = Math.min(minCol || Number.MAX_VALUE, col);
-        maxCol = Math.max(maxCol || 0, col);
-    });
-    if (!minRow || !maxRow || !minCol || !maxCol) {
-        console.log("Something went wrong");
-        return;
-    }
-    const topLeft = [minRow, minCol];
-    const bottomRight = [maxRow, maxCol];
-    console.log(finalDistance);
-    console.log("Boundaries", topLeft, bottomRight);
-    console.log("********************************************\n\n");
-    console.log(minRow, maxRow, minCol, maxCol);
-    for (let i = minRow; i < maxRow + 1; i++) {
-        for (let j = minCol; j < maxCol; j++) {
-            console.log("Curr:", i, j, matrix[i][j]);
-            if(matrix[i][j] !== ".") continue;
-            if (isInLoop([i, j], matrix, finalDistance)) {
-                console.log("\n\n************************************")
-                console.log("Found bound tile", i, j);
-                console.log("************************************\n\n")
+    const nodes = getNodes(startingPoint, matrix);
+    const leftDistances = visit(nodes[0], matrix, { [startingPoint.toString()]: 0 }, 1);
+    const rightDistances = visit(nodes[1], matrix, { [startingPoint.toString()]: 0 }, 1);
+    const bestDistances = Object.keys(leftDistances).reduce((acc: Record<string, number>, key) => {
+        acc[key] = Math.min(leftDistances[key], rightDistances[key]);
+        return acc;
+    }, {});
+    for (let i = 0; i < matrix.length; i++) {
+        for (let j = 0; j < matrix[0].length; j++) {
+            const coord = [i, j];
+            if (bestDistances[coord.toString()] !== undefined) continue;
+            const isBoundedCell = isBounded(coord, matrix, bestDistances);
+            if (!isBoundedCell) {
+                matrix[i][j] = "0";
+                fillUnboundedNorth([i, j], matrix, bestDistances);
+                fillUnboundedEast([i, j], matrix, bestDistances);
+                fillUnboundedSouth([i, j], matrix, bestDistances);
+                fillUnboundedWest([i, j], matrix, bestDistances);
+            } else {
+                matrix[i][j] = "I";
             }
         }
     }
-    return Math.max(...Object.values(finalDistance));
+    matrix.forEach((row) => console.log(row.join("")));
+    return Math.max(...Object.values(bestDistances));
 };
 
-function isInLoop(coord: number[], matrix: string[][], distances: Record<string, number>): boolean {
-    console.log("Searching", coord)
-    if (coord.toString() in distances) {
-        console.log("Found", coord, "in distances");
-        return true;
-    } else if (coord[0] >= matrix.length || coord[1] >= matrix[0].length) {
-        console.log("Reached boundary", coord);
-        return false;
-    } else if (coord[0] < 0 || coord[1] < 0) {
-        console.log("Reached boundary", coord);
-        return false;
-    } else if (matrix[coord[0]][coord[1]] !== ".") {
-        console.log("Found non-tile", matrix[coord[0]][coord[1]], "at", coord);
-        return false;
+function fillUnboundedEast(coord: number[], matrix: string[][], distances: Record<string, number>) {
+    if(matrix[coord[0]][coord[1]] !== "0") {
+        console.log("OOOPS!");
     }
-    let northCounter = 1;
-    let boundNorth = true;
-    while(coord[0] - northCounter >= 0) {
-        const check = tileCheck([coord[0] - northCounter, coord[1]], matrix, distances);
-        if(!check) {
-            boundNorth = false;
+    // Check East bound
+    console.log("Going East....");
+    for (let i = coord[1]; i < matrix[0].length; i++) {
+        const nextCoordKey = [coord[0], i].toString();
+        const isWall = distances[nextCoordKey] !== undefined;
+        if (isWall) {
             break;
+        } else {
+            matrix[coord[0]][i] = "0";
         }
-        northCounter++;
     }
-    let southCounter = 1;
-    let boundSouth = true;
-    while(coord[0] + southCounter < matrix.length) {
-        const check = tileCheck([coord[0] + southCounter, coord[1]], matrix, distances);
-        if(!check) {
-            boundSouth = false;
-            break;
-        }
-        southCounter++;
-    }
-    let eastCounter = 1;
-    let boundEast = true;
-    while(coord[1] + eastCounter < matrix[0].length) {
-        const check = tileCheck([coord[0], coord[1] + eastCounter], matrix, distances);
-        if(!check) {
-            boundEast = false;
-            break;
-        }
-        eastCounter++;
-    }
-    let westCounter = 1;
-    let boundWest = true;
-    while(coord[1] - westCounter >= 0) {
-        const check = tileCheck([coord[0], coord[1] - westCounter], matrix, distances);
-        if(!check) {
-            boundWest = false;
-            break;
-        }
-        westCounter++;
-    }
-    // const boundNorth = isInLoop([coord[0] - 1, coord[1]], matrix, distances);
-    // const boundEast = isInLoop([coord[0], coord[1] + 1], matrix, distances);
-    // const boundSouth = isInLoop([coord[0] + 1, coord[1]], matrix, distances);
-    // const boundWest = isInLoop([coord[0], coord[1] - 1], matrix, distances);
-    return boundNorth && boundEast && boundSouth && boundWest;
 }
 
-function tileCheck(coord: number[], matrix: string[][], distances: Record<string, number>): boolean {
-    if (coord.toString() in distances) {
-        console.log("Found", coord, "in distances");
-        return true;
-    } else if (coord[0] >= matrix.length || coord[1] >= matrix[0].length) {
-        console.log("Reached boundary", coord);
-        return false;
-    } else if (coord[0] < 0 || coord[1] < 0) {
-        console.log("Reached boundary", coord);
-        return false;
-    } else if (matrix[coord[0]][coord[1]] !== ".") {
-        console.log("Found non-tile", matrix[coord[0]][coord[1]], "at", coord);
-        return false;
-    } else {
-        console.log("UNKNOWN???");
-        return true;
+function fillUnboundedNorth(coord: number[], matrix: string[][], distances: Record<string, number>) {
+    if(matrix[coord[0]][coord[1]] !== "0") {
+        console.log("OOOPS!");
+    }
+    // Check North bound
+    console.log("Going North....");
+    for (let i = coord[0]; i >= 0; i--) {
+        const nextCoordKey = [i, coord[1]].toString();
+        const isWall = distances[nextCoordKey] !== undefined;
+        if (isWall) {
+            break;
+        } else {
+            matrix[i][coord[1]] = "0";
+        }
     }
 }
-function visit(
-    start: number[],
-    coord: number[],
-    matrix: string[][],
-    distance: Record<string, number>,
-    step: number,
-) {
-    console.log("Visiting", coord, "(", step, ")");
-    distance[coord.toString()] = step;
-    const validCoords = getValidCoords(coord, matrix);
-    console.log("Valid coords", validCoords);
+
+function fillUnboundedSouth(coord: number[], matrix: string[][], distances: Record<string, number>) {
+    if(matrix[coord[0]][coord[1]] !== "0") {
+        console.log("OOOPS!");
+    }
+    // Check South bound
+    console.log("Going South....");
+    for (let i = coord[0]; i < matrix.length; i++) {
+        const nextCoordKey = [i, coord[1]].toString();
+        const isWall = distances[nextCoordKey] !== undefined;
+        if (isWall) {
+            break;
+        } else {
+            matrix[i][coord[1]] = "0";
+        }
+    }
+}
+
+function fillUnboundedWest(coord: number[], matrix: string[][], distances: Record<string, number>) {
+    if(matrix[coord[0]][coord[1]] !== "0") {
+        console.log("OOOPS!");
+    }
+    // Check West bound
+    console.log("Going West....");
+    for (let i = coord[1]; i >= 0; i--) {
+        const nextCoordKey = [coord[0], i].toString();
+        const isWall = distances[nextCoordKey] !== undefined;
+        if (isWall) {
+            break;
+        } else {
+            matrix[coord[0]][i] = "0";
+        }
+    }
+}
+
+function visit(coord: number[], matrix: string[][], visited: Record<string, number>, step: number) {
+    visited[coord.toString()] = step;
+    const nodes = getNodes(coord, matrix);
     if (
-        Object.keys(distance).includes(validCoords[0].toString()) &&
-        Object.keys(distance).includes(validCoords[1].toString())
+        Object.keys(visited).includes(nodes[0].toString()) &&
+        Object.keys(visited).includes(nodes[1].toString())
     ) {
-        console.log("Done in ", step, "steps");
-        console.log("********************************************\n\n");
-        return distance;
+        return visited;
     }
-    const next = Object.keys(distance).includes(validCoords[1].toString())
-        ? validCoords[0]
-        : validCoords[1];
-    console.log("Next is", next);
-    console.log("----------------------------------------------");
-    return visit(start, next, matrix, distance, step + 1);
+    const next = Object.keys(visited).includes(nodes[1].toString()) ? nodes[0] : nodes[1];
+    return visit(next, matrix, visited, step + 1);
 }
 
-function getValidCoords(coord: number[], matrix: string[][]): number[][] {
+function getNodes(coord: number[], matrix: string[][]): number[][] {
     const NORTH = [-1, 0];
     const SOUTH = [1, 0];
     const EAST = [0, 1];
     const WEST = [0, -1];
-    const directionMap: Record<string, number[][]> = {
+    const validOutputs: Record<string, number[][]> = {
         "|": [SOUTH, NORTH],
         "-": [EAST, WEST],
         "L": [NORTH, EAST],
@@ -185,52 +138,94 @@ function getValidCoords(coord: number[], matrix: string[][]): number[][] {
         "F": [SOUTH, EAST],
         "S": [SOUTH, NORTH, WEST, EAST],
     };
-    const validNorthBound = ["|", "7", "F", "S"];
-    const validSouthBound = ["|", "J", "L", "S"];
-    const validEastBound = ["-", "J", "7", "S"];
-    const validWestBound = ["-", "F", "L", "S"];
-    const north = getNorth(coord);
-    const east = getEast(coord);
-    const south = getSouth(coord);
-    const west = getWest(coord);
-    let validCoords = [];
+    const validInputs: Record<string, string[]> = {
+        [NORTH.toString()]: ["|", "7", "F", "S"],
+        [SOUTH.toString()]: ["|", "J", "L", "S"],
+        [EAST.toString()]: ["-", "J", "7", "S"],
+        [WEST.toString()]: ["-", "F", "L", "S"],
+    };
     const shape = matrix[coord[0]][coord[1]];
-    const validDirections = directionMap[shape];
-    if (validDirections.includes(NORTH) && validNorthBound.includes(matrix[north[0]][north[1]])) {
-        console.log("North is valid");
-        validCoords.push(north);
+    const nodeCoords = validOutputs[shape].flatMap((direction) => {
+        const nextCoord = [coord[0] + direction[0], coord[1] + direction[1]];
+        const nextShape = matrix[nextCoord[0]][nextCoord[1]];
+        if (validInputs[direction.toString()].includes(nextShape)) {
+            return [nextCoord];
+        } else {
+            return [];
+        }
+    });
+    return nodeCoords;
+}
+
+function isBounded(
+    coord: number[],
+    matrix: string[][],
+    distances: Record<string, number>,
+): boolean {
+    console.log("-------------------------------------------");
+    console.log("Checking", coord.toString());
+    // Check North bound
+    let boundNorth = false;
+    console.log("Going North....");
+    for (let i = coord[0]; i >= 0; i--) {
+        const nextCoordKey = [i, coord[1]].toString();
+        const isWall = distances[nextCoordKey] !== undefined;
+        if (isWall) {
+            console.log("Bounded to the North at", nextCoordKey);
+            boundNorth = true;
+            break;
+        } else if(matrix[i][coord[1]] === "0") {
+            boundNorth = false;
+            break;
+        }
     }
-    if (validDirections.includes(EAST) && validEastBound.includes(matrix[east[0]][east[1]])) {
-        console.log("East is valid");
-        validCoords.push(east);
+    // Check South bound
+    let boundSouth = false;
+    console.log("Going South....");
+    for (let i = coord[0]; i < matrix.length; i++) {
+        const nextCoordKey = [i, coord[1]].toString();
+        const isWall = distances[nextCoordKey] !== undefined;
+        if (isWall) {
+            console.log("Bounded to the South at", nextCoordKey);
+            boundSouth = true;
+            break;
+        } else if(matrix[i][coord[1]] === "0") {
+            boundSouth = false;
+            break;
+        }
     }
-    if (validDirections.includes(SOUTH) && validSouthBound.includes(matrix[south[0]][south[1]])) {
-        console.log("South is valid");
-        validCoords.push(south);
+    // Check East bound
+    let boundEast = false;
+    console.log("Going East....");
+    for (let i = coord[1]; i < matrix[0].length; i++) {
+        const nextCoordKey = [coord[0], i].toString();
+        const isWall = distances[nextCoordKey] !== undefined;
+        if (isWall) {
+            console.log("Bounded to the East at", nextCoordKey);
+            boundEast = true;
+            break;
+        } else if(matrix[coord[0]][i] === "0") {
+            boundEast = false;
+            break;
+        }
     }
-    if (validDirections.includes(WEST) && validWestBound.includes(matrix[west[0]][west[1]])) {
-        console.log("West is valid");
-        validCoords.push(west);
+    // Check West bound
+    let boundWest = false;
+    console.log("Going West....");
+    for (let i = coord[1]; i >= 0; i--) {
+        const nextCoordKey = [coord[0], i].toString();
+        const isWall = distances[nextCoordKey] !== undefined;
+        if (isWall) {
+            console.log("Bounded to the West at", nextCoordKey);
+            boundWest = true;
+            break;
+        } else if(matrix[coord[0]][i] === "0") {
+            boundWest = false;
+            break;
+        }
     }
-    return validCoords;
+    return boundNorth && boundSouth && boundEast && boundWest;
 }
-
-function getNorth(coord: number[]): number[] {
-    return [coord[0] - 1, coord[1]];
-}
-
-function getSouth(coord: number[]): number[] {
-    return [coord[0] + 1, coord[1]];
-}
-
-function getEast(coord: number[]): number[] {
-    return [coord[0], coord[1] + 1];
-}
-
-function getWest(coord: number[]): number[] {
-    return [coord[0], coord[1] - 1];
-}
-
 /**
  * Main execution function
  */
@@ -244,4 +239,4 @@ function main(filename: string): number {
     return answer;
 }
 
-main("input.test2.txt");
+main("input.test3.txt");

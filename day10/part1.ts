@@ -16,13 +16,14 @@ const process = (lines: string[]) => {
             return [];
         }
     });
-    const nodeCoords = getNodes(startingPoint, matrix);
-    const leftDistance = visit(nodeCoords[0], matrix, { [startingPoint.toString()]: 0 }, 1);
-    const rightDistance = visit(nodeCoords[1], matrix, { [startingPoint.toString()]: 0 }, 1);
-    const bestDistances = Object.keys(leftDistance).map((key) =>
-        Math.min(leftDistance[key], rightDistance[key]),
-    );
-    return Math.max(...bestDistances);
+    const nodes = getNodes(startingPoint, matrix);
+    const leftDistances = visit(nodes[0], matrix, { [startingPoint.toString()]: 0 }, 1);
+    const rightDistances = visit(nodes[1], matrix, { [startingPoint.toString()]: 0 }, 1);
+    const bestDistances = Object.keys(leftDistances).reduce((acc: Record<string, number>, key) => {
+        acc[key] = Math.min(leftDistances[key], rightDistances[key]);
+        return acc;
+    }, {});
+    return Math.max(...Object.values(bestDistances));
 };
 
 function visit(coord: number[], matrix: string[][], visited: Record<string, number>, step: number) {
