@@ -8,20 +8,17 @@ import { dirname } from "path";
  */
 const process = (lines: string[]) => {
     const matrix: string[][] = lines.map((line) => line.split(""));
-    const startingPoint = matrix.reduce(
-        (acc, curr, row_index) => {
-            const colIndex = curr.indexOf("S");
-            if (colIndex !== -1) {
-                return [row_index, colIndex];
-            } else {
-                return acc;
-            }
-        },
-        [0, 0],
-    );
-    const validCoords = getNodes(startingPoint, matrix);
-    const leftDistance = visit(validCoords[0], matrix, { [startingPoint.toString()]: 0 }, 1);
-    const rightDistance = visit(validCoords[1], matrix, { [startingPoint.toString()]: 0 }, 1);
+    const startingPoint = matrix.flatMap((row, row_index) => {
+        const colIndex = row.indexOf("S");
+        if (colIndex !== -1) {
+            return [row_index, colIndex];
+        } else {
+            return [];
+        }
+    });
+    const nodes = getNodes(startingPoint, matrix);
+    const leftDistance = visit(nodes[0], matrix, { [startingPoint.toString()]: 0 }, 1);
+    const rightDistance = visit(nodes[1], matrix, { [startingPoint.toString()]: 0 }, 1);
     const bestDistances = Object.keys(leftDistance).map((key) =>
         Math.min(leftDistance[key], rightDistance[key]),
     );
@@ -62,32 +59,33 @@ function getNodes(coord: number[], matrix: string[][]): number[][] {
     const shape = matrix[coord[0]][coord[1]];
     const allowedDirections = allowedDirectionsMap[shape];
     let validCoords = [];
-    if(allowedDirections.includes(NORTH)) {
+    if (allowedDirections.includes(NORTH)) {
         const northCoord = [coord[0] - 1, coord[1]];
-        if(validNorthBound.includes(matrix[northCoord[0]][northCoord[1]])) {
+        if (validNorthBound.includes(matrix[northCoord[0]][northCoord[1]])) {
             validCoords.push(northCoord);
         }
     }
-    if(allowedDirections.includes(EAST)) {
+    if (allowedDirections.includes(EAST)) {
         const eastCoord = [coord[0], coord[1] + 1];
-        if(validEastBound.includes(matrix[eastCoord[0]][eastCoord[1]])) {
+        if (validEastBound.includes(matrix[eastCoord[0]][eastCoord[1]])) {
             validCoords.push(eastCoord);
         }
     }
-    if(allowedDirections.includes(SOUTH)) {
+    if (allowedDirections.includes(SOUTH)) {
         const southCoord = [coord[0] + 1, coord[1]];
-        if(validSouthBound.includes(matrix[southCoord[0]][southCoord[1]])) {
+        if (validSouthBound.includes(matrix[southCoord[0]][southCoord[1]])) {
             validCoords.push(southCoord);
         }
     }
-    if(allowedDirections.includes(WEST)) {
+    if (allowedDirections.includes(WEST)) {
         const westCoord = [coord[0], coord[1] - 1];
-        if(validWestBound.includes(matrix[westCoord[0]][westCoord[1]])) {
+        if (validWestBound.includes(matrix[westCoord[0]][westCoord[1]])) {
             validCoords.push(westCoord);
         }
     }
     return validCoords;
 }
+
 /**
  * Main execution function
  */
