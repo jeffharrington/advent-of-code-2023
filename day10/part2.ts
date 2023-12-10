@@ -16,115 +16,208 @@ const process = (lines: string[]) => {
             return [];
         }
     });
-    const startingNodes = getNodes(startingPoint, originalMatrix);
-    const dx1 = startingNodes[0][0] - startingPoint[0];
-    const dy1 =  startingNodes[0][1] - startingPoint[1];
-    const dx2 = startingNodes[1][0] - startingPoint[0];
-    const dy2 =  startingNodes[1][1] - startingPoint[1];
-    let startingShape = null;
-    if(dx1 > 0 && dy1 === 0) {
-        // South
-        if(dx2 === 0 && dy2 > 0) {
-            // South + East
-            startingShape = "F";
-        } else if(dx2 === 0 && dy2 < 0) {
-            // South + West
-            startingShape = "7";
-        } else if(dx2 < 0 && dy2 === 0) {
-            // South + North
-            startingShape = "|";
+    originalMatrix[startingPoint[0]][startingPoint[1]] = "7";
+    let loop = Array.from(new Array(originalMatrix.length * 2), () =>
+        new Array(originalMatrix[0].length * 2).fill(false),
+    );
+    let i = startingPoint[0];
+    let j = startingPoint[1];
+    // console.log("Starting at", i, j);
+    let visited = new Set<string>([[i, j].toString()]);
+    while (true) {
+        // console.log(visited);
+        loop[i * 2][j * 2] = true;
+        const c = originalMatrix[i][j];
+        const up = c == "|" || c == "L" || c == "J";
+        const down = c == "|" || c == "7" || c == "F";
+        const left = c == "-" || c == "7" || c == "J";
+        const right = c == "-" || c == "L" || c == "F";
+        if (right) {
+            loop[i * 2][j * 2 + 1] = true;
+            if (!visited.has([i, j + 1].toString())) {
+                j++;
+                visited = visited.add([i, j].toString());
+                continue;
+            }
         }
-    } else if(dx1 < 0 && dy1 === 0) {
-        // North
-        if(dx2 === 0 && dy2 > 0) {
-            // North + East
-            startingShape = "L";
-        } else if(dx2 === 0 && dy2 < 0) {
-            // North + West
-            startingShape = "J";
-        } else if(dx2 > 0 && dy2 === 0) {
-            // North + South
-            startingShape = "|";
+        if (up) {
+            loop[i * 2 - 1][j * 2] = true;
+            if (!visited.has([i - 1, j].toString())) {
+                i--;
+                visited = visited.add([i, j].toString());
+                continue;
+            }
         }
-    } else if(dx1 === 0 && dy1 > 0) {
-        // East
-        if(dx2 === 0 && dy2 < 0) {
-            // East + West
-            startingShape = "-";
-        } else if(dx2 > 0 && dy2 === 0) {
-            // East + South
-            startingShape = "F";
-        } else if(dx2 < 0 && dy2 === 0) {
-            // East + North
-            startingShape = "L";
+        if (down) {
+            loop[i * 2 + 1][j * 2] = true;
+            if (!visited.has([i + 1, j].toString())) {
+                i++;
+                visited = visited.add([i, j].toString());
+                continue;
+            }
         }
-    } else if(dx1 === 0 && dy1 < 0) {
-        // West
-        if(dx2 === 0 && dy2 > 0) {
-            // West + East
-            startingShape = "-";
-        } else if(dx2 > 0 && dy2 === 0) {
-            // West + South
-            startingShape = "7";
-        } else if(dx2 < 0 && dy2 === 0) {
-            // West + North
-            startingShape = "J";
+        if (left) {
+            if (!visited.has([i, j - 1].toString())) {
+                loop[i * 2][j * 2 - 1] = true;
+                j--;
+                visited = visited.add([i, j].toString());
+                continue;
+            }
         }
+        break;
     }
-    originalMatrix[startingPoint[0]][startingPoint[1]] = startingShape || "S";
-    console.log("Starting shape:", startingShape);
-    originalMatrix.forEach((row) => console.log(row.join("")));
-    const zoomedMatrix = zoomMatrix(originalMatrix);
 
-    console.log("\n\n");
-    zoomedMatrix.forEach((row) => console.log(row.join("")));
-    console.log("\n\n");
-    const zoomedStartingPoint = [startingPoint[0] * 2, startingPoint[1] * 2];
-    const nodes = getNodes(zoomedStartingPoint, zoomedMatrix);
-    console.log("Nodes:", nodes);
-    const leftDistances = visit(nodes[0], zoomedMatrix, { [startingPoint.toString()]: 0 }, 1);
-    const rightDistances = visit(nodes[1], zoomedMatrix, { [startingPoint.toString()]: 0 }, 1);
-    const bestDistances = Object.keys(leftDistances).reduce((acc: Record<string, number>, key) => {
-        acc[key] = Math.min(leftDistances[key], rightDistances[key]);
-        return acc;
-    }, {});
-    for (let i = 0; i < zoomedMatrix.length; i++) {
-        for (let j = 0; j < zoomedMatrix[0].length; j++) {
-            const coord = [i, j];
-            if (bestDistances[coord.toString()] !== undefined) continue;
-            const isBoundedCell = isBounded(coord, zoomedMatrix, bestDistances);
-            if (!isBoundedCell) {
-                zoomedMatrix[i][j] = "0";
-                fillUnboundedNorth([i, j], zoomedMatrix, bestDistances);
-                fillUnboundedEast([i, j], zoomedMatrix, bestDistances);
-                fillUnboundedSouth([i, j], zoomedMatrix, bestDistances);
-                fillUnboundedWest([i, j], zoomedMatrix, bestDistances);
-            } else {
-                zoomedMatrix[i][j] = "I";
+    // console.log(visited);
+
+    // for (const line of loop) {
+    //     console.log(line.map((x) => (x ? "X" : " ")).join(""));
+    // }
+
+    const queue = [[0, 0]];
+
+    while (queue.length > 0) {
+        const [i, j] = queue.shift()!;
+        for (const pt of neighbors([i, j])) {
+            const [ii, jj] = pt;
+            if (ii >= 0 && jj >= 0 && ii < loop.length && jj < loop[0].length && !loop[ii][jj]) {
+                loop[ii][jj] = true;
+                queue.push([ii, jj]);
             }
         }
     }
-    const numberTiles = zoomedMatrix.reduce((acc, row) => {
-        return (
-            acc +
-            row.reduce((innerAcc, cell) => {
-                return cell === "I" ? innerAcc + 1 : innerAcc;
-            }, 0)
-        );
-    }, 0);
-    originalMatrix.forEach((row) => console.log(row.join("")));
-    console.log("\n\n");
-    zoomedMatrix.forEach((row) => console.log(row.join("")));
-    console.log(originalMatrix.length, "x", originalMatrix[0].length);
-    console.log(zoomedMatrix.length, "x", zoomedMatrix[0].length);
-    console.log("Tiles:", numberTiles);
-    return Math.max(...Object.values(bestDistances));
+
+    let ans = 0;
+
+    for (let i = 0; i < loop.length; i++) {
+        for (let j = 0; j < loop[i].length; j++) {
+            if (!loop[i][j] && i % 2 == 0 && j % 2 == 0) {
+                ans++;
+            }
+        }
+    }
+
+    console.log(ans);
+
+    return ans;
+    // const startingNodes = getNodes(startingPoint, originalMatrix);
+    // const dx1 = startingNodes[0][0] - startingPoint[0];
+    // const dy1 =  startingNodes[0][1] - startingPoint[1];
+    // const dx2 = startingNodes[1][0] - startingPoint[0];
+    // const dy2 =  startingNodes[1][1] - startingPoint[1];
+    // let startingShape = null;
+    // if(dx1 > 0 && dy1 === 0) {
+    //     // South
+    //     if(dx2 === 0 && dy2 > 0) {
+    //         // South + East
+    //         startingShape = "F";
+    //     } else if(dx2 === 0 && dy2 < 0) {
+    //         // South + West
+    //         startingShape = "7";
+    //     } else if(dx2 < 0 && dy2 === 0) {
+    //         // South + North
+    //         startingShape = "|";
+    //     }
+    // } else if(dx1 < 0 && dy1 === 0) {
+    //     // North
+    //     if(dx2 === 0 && dy2 > 0) {
+    //         // North + East
+    //         startingShape = "L";
+    //     } else if(dx2 === 0 && dy2 < 0) {
+    //         // North + West
+    //         startingShape = "J";
+    //     } else if(dx2 > 0 && dy2 === 0) {
+    //         // North + South
+    //         startingShape = "|";
+    //     }
+    // } else if(dx1 === 0 && dy1 > 0) {
+    //     // East
+    //     if(dx2 === 0 && dy2 < 0) {
+    //         // East + West
+    //         startingShape = "-";
+    //     } else if(dx2 > 0 && dy2 === 0) {
+    //         // East + South
+    //         startingShape = "F";
+    //     } else if(dx2 < 0 && dy2 === 0) {
+    //         // East + North
+    //         startingShape = "L";
+    //     }
+    // } else if(dx1 === 0 && dy1 < 0) {
+    //     // West
+    //     if(dx2 === 0 && dy2 > 0) {
+    //         // West + East
+    //         startingShape = "-";
+    //     } else if(dx2 > 0 && dy2 === 0) {
+    //         // West + South
+    //         startingShape = "7";
+    //     } else if(dx2 < 0 && dy2 === 0) {
+    //         // West + North
+    //         startingShape = "J";
+    //     }
+    // }
+    // originalMatrix[startingPoint[0]][startingPoint[1]] = startingShape || "S";
+    // console.log("Starting shape:", startingShape);
+    // originalMatrix.forEach((row) => console.log(row.join("")));
+    // const zoomedMatrix = zoomMatrix(originalMatrix);
+
+    // console.log("\n\n");
+    // zoomedMatrix.forEach((row) => console.log(row.join("")));
+    // console.log("\n\n");
+    // const zoomedStartingPoint = [startingPoint[0] * 2, startingPoint[1] * 2];
+    // const nodes = getNodes(zoomedStartingPoint, zoomedMatrix);
+    // console.log("Nodes:", nodes);
+    // const leftDistances = visit(nodes[0], zoomedMatrix, { [startingPoint.toString()]: 0 }, 1);
+    // const rightDistances = visit(nodes[1], zoomedMatrix, { [startingPoint.toString()]: 0 }, 1);
+    // const bestDistances = Object.keys(leftDistances).reduce((acc: Record<string, number>, key) => {
+    //     acc[key] = Math.min(leftDistances[key], rightDistances[key]);
+    //     return acc;
+    // }, {});
+    // for (let i = 0; i < zoomedMatrix.length; i++) {
+    //     for (let j = 0; j < zoomedMatrix[0].length; j++) {
+    //         const coord = [i, j];
+    //         if (bestDistances[coord.toString()] !== undefined) continue;
+    //         const isBoundedCell = isBounded(coord, zoomedMatrix, bestDistances);
+    //         if (!isBoundedCell) {
+    //             zoomedMatrix[i][j] = "0";
+    //             fillUnboundedNorth([i, j], zoomedMatrix, bestDistances);
+    //             fillUnboundedEast([i, j], zoomedMatrix, bestDistances);
+    //             fillUnboundedSouth([i, j], zoomedMatrix, bestDistances);
+    //             fillUnboundedWest([i, j], zoomedMatrix, bestDistances);
+    //         } else {
+    //             zoomedMatrix[i][j] = "I";
+    //         }
+    //     }
+    // }
+    // const numberTiles = zoomedMatrix.reduce((acc, row) => {
+    //     return (
+    //         acc +
+    //         row.reduce((innerAcc, cell) => {
+    //             return cell === "I" ? innerAcc + 1 : innerAcc;
+    //         }, 0)
+    //     );
+    // }, 0);
+    // originalMatrix.forEach((row) => console.log(row.join("")));
+    // console.log("\n\n");
+    // zoomedMatrix.forEach((row) => console.log(row.join("")));
+    // console.log(originalMatrix.length, "x", originalMatrix[0].length);
+    // console.log(zoomedMatrix.length, "x", zoomedMatrix[0].length);
+    // console.log("Tiles:", numberTiles);
+    // return Math.max(...Object.values(bestDistances));
 };
 
+function neighbors(coord: number[]) {
+    const NORTH = [-1, 0];
+    const SOUTH = [1, 0];
+    const EAST = [0, 1];
+    const WEST = [0, -1];
+    return [NORTH, SOUTH, EAST, WEST].flatMap(([dx, dy]) => {
+        const nextCoord = [coord[0] + dx, coord[1] + dy];
+        return [nextCoord];
+    });
+}
 function zoomMatrix(matrix: string[][]) {
     const newMatrix = matrix.flatMap((row, rowIndex) => {
         const newRow = row.flatMap((cell, colIndex) => {
-            switch(cell) {
+            switch (cell) {
                 case "L":
                     return ["L", "-"];
                 case "J":
@@ -144,7 +237,7 @@ function zoomMatrix(matrix: string[][]) {
             }
         });
         const fillerRow = row.flatMap((cell) => {
-            switch(cell) {
+            switch (cell) {
                 case "S":
                     return ["S", "S"];
                 case "L":
@@ -367,4 +460,4 @@ function main(filename: string): number {
     return answer;
 }
 
-main("input.test3.txt");
+main("input.txt");
