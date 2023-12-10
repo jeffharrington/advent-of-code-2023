@@ -16,9 +16,9 @@ const process = (lines: string[]) => {
             return [];
         }
     });
-    const nodes = getNodes(startingPoint, matrix);
-    const leftDistance = visit(nodes[0], matrix, { [startingPoint.toString()]: 0 }, 1);
-    const rightDistance = visit(nodes[1], matrix, { [startingPoint.toString()]: 0 }, 1);
+    const nodeCoords = getNodes(startingPoint, matrix);
+    const leftDistance = visit(nodeCoords[0], matrix, { [startingPoint.toString()]: 0 }, 1);
+    const rightDistance = visit(nodeCoords[1], matrix, { [startingPoint.toString()]: 0 }, 1);
     const bestDistances = Object.keys(leftDistance).map((key) =>
         Math.min(leftDistance[key], rightDistance[key]),
     );
@@ -43,7 +43,7 @@ function getNodes(coord: number[], matrix: string[][]): number[][] {
     const SOUTH = [1, 0];
     const EAST = [0, 1];
     const WEST = [0, -1];
-    const allowedDirectionsMap: Record<string, number[][]> = {
+    const validOutputs: Record<string, number[][]> = {
         "|": [SOUTH, NORTH],
         "-": [EAST, WEST],
         "L": [NORTH, EAST],
@@ -52,38 +52,23 @@ function getNodes(coord: number[], matrix: string[][]): number[][] {
         "F": [SOUTH, EAST],
         "S": [SOUTH, NORTH, WEST, EAST],
     };
-    const validNorthBound = ["|", "7", "F", "S"];
-    const validSouthBound = ["|", "J", "L", "S"];
-    const validEastBound = ["-", "J", "7", "S"];
-    const validWestBound = ["-", "F", "L", "S"];
+    const validInputs: Record<string, string[]> = {
+        [NORTH.toString()]: ["|", "7", "F", "S"],
+        [SOUTH.toString()]: ["|", "J", "L", "S"],
+        [EAST.toString()]: ["-", "J", "7", "S"],
+        [WEST.toString()]: ["-", "F", "L", "S"],
+    };
     const shape = matrix[coord[0]][coord[1]];
-    const allowedDirections = allowedDirectionsMap[shape];
-    let validCoords = [];
-    if (allowedDirections.includes(NORTH)) {
-        const northCoord = [coord[0] - 1, coord[1]];
-        if (validNorthBound.includes(matrix[northCoord[0]][northCoord[1]])) {
-            validCoords.push(northCoord);
+    const nodeCoords = validOutputs[shape].flatMap((direction) => {
+        const nextCoord = [coord[0] + direction[0], coord[1] + direction[1]];
+        const nextShape = matrix[nextCoord[0]][nextCoord[1]];
+        if (validInputs[direction.toString()].includes(nextShape)) {
+            return [nextCoord];
+        } else {
+            return [];
         }
-    }
-    if (allowedDirections.includes(EAST)) {
-        const eastCoord = [coord[0], coord[1] + 1];
-        if (validEastBound.includes(matrix[eastCoord[0]][eastCoord[1]])) {
-            validCoords.push(eastCoord);
-        }
-    }
-    if (allowedDirections.includes(SOUTH)) {
-        const southCoord = [coord[0] + 1, coord[1]];
-        if (validSouthBound.includes(matrix[southCoord[0]][southCoord[1]])) {
-            validCoords.push(southCoord);
-        }
-    }
-    if (allowedDirections.includes(WEST)) {
-        const westCoord = [coord[0], coord[1] - 1];
-        if (validWestBound.includes(matrix[westCoord[0]][westCoord[1]])) {
-            validCoords.push(westCoord);
-        }
-    }
-    return validCoords;
+    });
+    return nodeCoords;
 }
 
 /**
