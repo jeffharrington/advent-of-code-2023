@@ -18,18 +18,14 @@ const process = (lines: string[]) => {
     });
 
     const startingShape = getStartingShape(startingPoint, matrix);
-    if (!startingShape) {
-        throw new Error("Starting shape not found");
-    }
     matrix[startingPoint[0]][startingPoint[1]] = startingShape as string;
 
-    let zoomedMatrix: boolean[][] = Array.from(new Array(matrix.length * 2), () =>
+    const zoomedMatrix = Array.from({ length: matrix.length * 2 }, () =>
         new Array(matrix[0].length * 2).fill(false),
     );
 
     const filledMatrix = visit(startingPoint, matrix, zoomedMatrix, new Set<string>([]));
 
-    // Flood fill outside of the maze
     const queue = [[0, 0]];
     while (queue.length > 0) {
         const [i, j] = queue.shift()!;
@@ -49,14 +45,14 @@ const process = (lines: string[]) => {
     }
 
     const answer = filledMatrix.reduce((acc, row, row_index) => {
-        const rowSum = row.flatMap((cell, col_index) => {
+        const rowSum = row.reduce((acc2, cell, col_index) => {
             if (!cell && row_index % 2 == 0 && col_index % 2 == 0) {
-                return [acc + 1];
+                return acc2 + 1;
             } else {
-                return [];
+                return acc2;
             }
-        });
-        return rowSum.reduce((a, x) => a + x, acc);
+        }, 0);
+        return acc + rowSum;
     }, 0);
 
     return answer;
@@ -141,7 +137,7 @@ function getStartingShape(startingPoint: number[], matrix: string[][]) {
     const dy1 = startingNodes[0][1] - startingPoint[1];
     const dx2 = startingNodes[1][0] - startingPoint[0];
     const dy2 = startingNodes[1][1] - startingPoint[1];
-    let startingShape = null;
+    let startingShape = "S";
     if (dx1 > 0 && dy1 === 0) {
         if (dx2 === 0 && dy2 > 0) {
             startingShape = "F";
@@ -202,4 +198,4 @@ function main(filename: string): number {
     return answer;
 }
 
-main("input.test3.txt");
+main("input.txt");
