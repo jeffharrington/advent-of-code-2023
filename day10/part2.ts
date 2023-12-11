@@ -16,59 +16,20 @@ const process = (lines: string[]) => {
             return [];
         }
     });
+
     const startingShape = getStartingShape(startingPoint, matrix);
     if (!startingShape) {
         throw new Error("Starting shape not found");
     }
     matrix[startingPoint[0]][startingPoint[1]] = startingShape as string;
-    let zoomedMatrix = Array.from(new Array(matrix.length * 2), () =>
+
+    let zoomedMatrix: boolean[][] = Array.from(new Array(matrix.length * 2), () =>
         new Array(matrix[0].length * 2).fill(false),
     );
-    let i = startingPoint[0];
-    let j = startingPoint[1];
-    let visited = new Set<string>([startingPoint.toString()]);
-    while (true) {
-        zoomedMatrix[i * 2][j * 2] = true;
-        const c = matrix[i][j];
-        const up = c == "|" || c == "L" || c == "J";
-        const down = c == "|" || c == "7" || c == "F";
-        const left = c == "-" || c == "7" || c == "J";
-        const right = c == "-" || c == "L" || c == "F";
-        if (right) {
-            zoomedMatrix[i * 2][j * 2 + 1] = true;
-            if (!visited.has([i, j + 1].toString())) {
-                j++;
-                visited = visited.add([i, j].toString());
-                continue;
-            }
-        }
-        if (up) {
-            zoomedMatrix[i * 2 - 1][j * 2] = true;
-            if (!visited.has([i - 1, j].toString())) {
-                i--;
-                visited = visited.add([i, j].toString());
-                continue;
-            }
-        }
-        if (down) {
-            zoomedMatrix[i * 2 + 1][j * 2] = true;
-            if (!visited.has([i + 1, j].toString())) {
-                i++;
-                visited = visited.add([i, j].toString());
-                continue;
-            }
-        }
-        if (left) {
-            if (!visited.has([i, j - 1].toString())) {
-                zoomedMatrix[i * 2][j * 2 - 1] = true;
-                j--;
-                visited = visited.add([i, j].toString());
-                continue;
-            }
-        }
-        break;
-    }
 
+    const filledMatrix = visit(startingPoint, matrix, zoomedMatrix, new Set<string>([]));
+
+    // Flood fill outside of the maze
     const queue = [[0, 0]];
     while (queue.length > 0) {
         const [i, j] = queue.shift()!;
@@ -77,26 +38,69 @@ const process = (lines: string[]) => {
             if (
                 ii >= 0 &&
                 jj >= 0 &&
-                ii < zoomedMatrix.length &&
-                jj < zoomedMatrix[0].length &&
-                !zoomedMatrix[ii][jj]
+                ii < filledMatrix.length &&
+                jj < filledMatrix[0].length &&
+                !filledMatrix[ii][jj]
             ) {
-                zoomedMatrix[ii][jj] = true;
+                filledMatrix[ii][jj] = true;
                 queue.push([ii, jj]);
             }
         }
     }
 
-    let answer = 0;
-    for (let i = 0; i < zoomedMatrix.length; i++) {
-        for (let j = 0; j < zoomedMatrix[i].length; j++) {
-            if (!zoomedMatrix[i][j] && i % 2 == 0 && j % 2 == 0) {
-                answer++;
+    const answer = filledMatrix.reduce((acc, row, row_index) => {
+        const rowSum = row.flatMap((cell, col_index) => {
+            if (!cell && row_index % 2 == 0 && col_index % 2 == 0) {
+                return [acc + 1];
+            } else {
+                return [];
             }
-        }
-    }
+        });
+        return rowSum.reduce((a, x) => a + x, acc);
+    }, 0);
+
     return answer;
 };
+
+function visit(
+    coord: number[],
+    matrix: string[][],
+    zoomedMatrix: boolean[][],
+    visited: Set<string>,
+): boolean[][] {
+    const shape = matrix[coord[0]][coord[1]];
+    visited.add(coord.toString());
+    zoomedMatrix[coord[0] * 2][coord[1] * 2] = true;
+    const north = shape == "|" || shape == "L" || shape == "J";
+    const south = shape == "|" || shape == "7" || shape == "F";
+    const west = shape == "-" || shape == "7" || shape == "J";
+    const east = shape == "-" || shape == "L" || shape == "F";
+    if (east) {
+        zoomedMatrix[coord[0] * 2][coord[1] * 2 + 1] = true;
+        if (!visited.has([coord[0], coord[1] + 1].toString())) {
+            zoomedMatrix = visit([coord[0], coord[1] + 1], matrix, zoomedMatrix, visited);
+        }
+    }
+    if (north) {
+        zoomedMatrix[coord[0] * 2 - 1][coord[1] * 2] = true;
+        if (!visited.has([coord[0] - 1, coord[1]].toString())) {
+            zoomedMatrix = visit([coord[0] - 1, coord[1]], matrix, zoomedMatrix, visited);
+        }
+    }
+    if (south) {
+        zoomedMatrix[coord[0] * 2 + 1][coord[1] * 2] = true;
+        if (!visited.has([coord[0] + 1, coord[1]].toString())) {
+            zoomedMatrix = visit([coord[0] + 1, coord[1]], matrix, zoomedMatrix, visited);
+        }
+    }
+    if (west) {
+        zoomedMatrix[coord[0] * 2][coord[1] * 2 - 1] = true;
+        if (!visited.has([coord[0], coord[1] - 1].toString())) {
+            zoomedMatrix = visit([coord[0], coord[1] - 1], matrix, zoomedMatrix, visited);
+        }
+    }
+    return zoomedMatrix;
+}
 
 function getNodes(coord: number[], matrix: string[][]): number[][] {
     const NORTH = [-1, 0];
@@ -198,4 +202,4 @@ function main(filename: string): number {
     return answer;
 }
 
-main("input.txt");
+main("input.test3.txt");
