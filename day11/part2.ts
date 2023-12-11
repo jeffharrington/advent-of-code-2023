@@ -40,7 +40,7 @@ const process = (lines: string[]) => {
         for(let j = i + 1; j < galaxies.length; j++) {
             const galaxy1 = galaxies[i];
             const galaxy2 = galaxies[j];
-            let distance = manhattan(galaxies[i], galaxies[j]);
+            let distance = manhattan(galaxy1, galaxy2);
             expandableRows.forEach((row) => {
                 if (
                     (galaxy1[0] >= row && galaxy2[0] <= row) ||
