@@ -9,61 +9,62 @@ import { dirname } from "path";
 const process = (lines: string[]) => {
     const matrix = lines.map((line) => line.split(""));
 
-    let expandableRows: number[] = [];
-    matrix.forEach((row, row_index) => {
+    const expandableRows = matrix.flatMap((row, row_index) => {
         if (row.every((col) => col === ".")) {
-            expandableRows.push(row_index);
+            return [row_index];
+        } else {
+            return [];
         }
     });
 
-    let expandableCols: number[] = [];
-    transpose(matrix).forEach((row, row_index) => {
+    const expandableCols = transpose(matrix).flatMap((row, row_index) => {
         if (row.every((col) => col === ".")) {
-            expandableCols.push(row_index);
+            return [row_index];
+        } else {
+            return [];
         }
     });
 
-    let galaxies: number[][] = [];
-    matrix.forEach((row, rowIndex) => {
-        row.forEach((col, colIndex) => {
+    const galaxies = matrix.flatMap((row, rowIndex) => {
+        return row.flatMap((col, colIndex) => {
             if (col === "#") {
-                galaxies.push([rowIndex, colIndex]);
+                return [[rowIndex, colIndex]];
+            } else {
+                return [];
             }
         });
     });
 
-    let sum = 0;
-    const distances: Record<string, Record<string, number>> = {};
-    for (let i = 0; i < galaxies.length; i++) {
-        for (let j = i + 1; j < galaxies.length; j++) {
-            const galaxy1 = galaxies[i];
-            const galaxy2 = galaxies[j];
-            let distance = manhattan(galaxy1, galaxy2);
-            expandableRows.forEach((row) => {
+    const distancesSum = galaxies.reduce((acc, galaxy, index) => {
+        const remainingGalaxies = galaxies.slice(index + 1);
+        const totalDistance = remainingGalaxies.reduce((distanceAcc, otherGalaxy) => {
+            const distance = manhattan(galaxy, otherGalaxy);
+            const rowExpansion = expandableRows.reduce((rowAcc, row) => {
                 if (
-                    (galaxy1[0] >= row && galaxy2[0] <= row) ||
-                    (galaxy1[0] <= row && galaxy2[0] >= row)
+                    (galaxy[0] >= row && otherGalaxy[0] <= row) ||
+                    (galaxy[0] <= row && otherGalaxy[0] >= row)
                 ) {
-                    // console.log("row", row, "is included");
-                    distance += 1;
+                    return rowAcc + 1;
+                } else {
+                    return rowAcc;
                 }
-            });
-            expandableCols.forEach((col) => {
+            }, 0);
+            const colExpansion = expandableCols.reduce((colAcc, col) => {
                 if (
-                    (galaxy1[1] >= col && galaxy2[1] <= col) ||
-                    (galaxy1[1] <= col && galaxy2[1] >= col)
+                    (galaxy[1] >= col && otherGalaxy[1] <= col) ||
+                    (galaxy[1] <= col && otherGalaxy[1] >= col)
                 ) {
-                    // console.log("col", col, "is included");
-                    distance += 1;
+                    return colAcc + 1;
+                } else {
+                    return colAcc;
                 }
-            });
-            distances[galaxy1.toString()] = distances[galaxy1.toString()] || {};
-            distances[galaxy1.toString()][galaxy2.toString()] = distance;
-            sum += distance;
-        }
-    }
+            }, 0);
+            return distanceAcc + distance + rowExpansion + colExpansion;
+        }, 0);
+        return acc + totalDistance;
+    }, 0);
 
-    return sum;
+    return distancesSum;
 };
 
 function manhattan(coord1: number[], coord2: number[]) {
