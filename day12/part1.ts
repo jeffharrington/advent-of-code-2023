@@ -14,7 +14,7 @@ const process = (lines: string[]) => {
             .split(" ")[1]
             .split(",")
             .map((c) => parseInt(c));
-        const numPossibilities = getPossibilities(springs, conditions, 0, 0, 0, {});
+        const numPossibilities = getPossibilities(springs, 0, conditions, 0, 0, {});
         sum += numPossibilities;
     });
     return sum;
@@ -22,25 +22,23 @@ const process = (lines: string[]) => {
 
 function getPossibilities(
     blocks: string[],
-    conditions: number[],
     i: number, // Block index
+    conditions: number[],
     c: number, // Condition index
-    runLen: number,
+    runLength: number,
     table: Record<string, number>,
 ): number {
-    // console.log("-------------------------------------------");
-    // console.log(table);
-    const key = [i, c, runLen].join(",");
+    const key = [i, c, runLength].join(",");
 
     if (Object.keys(table).includes(key)) {
         return table[key];
     }
 
     if (i == blocks.length) {
-        if (c == conditions.length && runLen == 0) {
+        if (c == conditions.length && runLength == 0) {
             // We've reached the end and fit all the conditions
             return 1;
-        } else if (c == conditions.length - 1 && conditions[c] == runLen) {
+        } else if (c == conditions.length - 1 && conditions[c] == runLength) {
             // We can fit the final condition perfectly
             return 1;
         } else {
@@ -52,27 +50,27 @@ function getPossibilities(
     let count = 0;
     [".", "#"].forEach((char) => {
         if (blocks[i] == char || blocks[i] == "?") {
-            if (char == "." && runLen == 0) {
+            if (char == "." && runLength == 0) {
                 // We're not currently within a run of springs, continue on...
                 count += getPossibilities(
                     blocks,
+                    i + 1, // Next block
                     conditions,
-                    i + 1, // Next spring
                     c, // Current condition
-                    runLen, // Run length is still 0
+                    runLength, // Run length is still 0
                     table,
                 );
             } else if (
                 char == "." &&
-                runLen > 0 &&
+                runLength > 0 &&
                 c < conditions.length &&
-                conditions[c] == runLen
+                conditions[c] == runLength
             ) {
                 // We've satisfied a condition, continue on...
                 count += getPossibilities(
                     blocks,
+                    i + 1, // Next block
                     conditions,
-                    i + 1, // Next spring
                     c + 1, // Next condition
                     0, // Restart run
                     table,
@@ -81,10 +79,10 @@ function getPossibilities(
                 // We may be in the middle of a run,
                 count += getPossibilities(
                     blocks,
+                    i + 1, // Next block
                     conditions,
-                    i + 1, // Next spring
                     c, // Current condition
-                    runLen + 1, // Increase run
+                    runLength + 1, // Increase run
                     table,
                 );
             }
