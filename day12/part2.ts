@@ -9,15 +9,31 @@ import { dirname, parse } from "path";
 const process = (lines: string[]) => {
     let sum = 0;
     lines.forEach((line) => {
-        // console.log("--------------------------------------------------------");
-        // console.log(line);
         const springs = line.split(" ")[0].split("");
         const conditions = line
             .split(" ")[1]
             .split(",")
             .map((c) => parseInt(c));
-        const score = getPossibilities(springs, conditions, 0, 0, 0, {});
-        sum += score;
+        const modifiedSprings = [
+            ...springs,
+            "?",
+            ...springs,
+            "?",
+            ...springs,
+            "?",
+            ...springs,
+            "?",
+            ...springs,
+        ];
+        const modifiedConditions = [
+            ...conditions,
+            ...conditions,
+            ...conditions,
+            ...conditions,
+            ...conditions,
+        ];
+        const numPossibilities = getPossibilities(modifiedSprings, modifiedConditions, 0, 0, 0, {});
+        sum += numPossibilities;
     });
     return sum;
 };
