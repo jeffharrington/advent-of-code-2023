@@ -997,4 +997,67 @@
 .##.??????#.?# 2,6,2
 ?#.???.???. 1,2,1
 #??#???.?????????#?? 6,3,4
-?#?#.?.?#? 3,1,2
+?#?#.?.?#? 3,1,2import sys
+import re
+from copy import deepcopy
+from math import gcd
+from collections import defaultdict, Counter, deque
+
+D = open(sys.argv[1]).read().strip()
+L = D.split("\n")
+G = [[c for c in row] for row in L]
+
+# i == current position within dots
+# bi == current position within blocks
+# current == length of current block of '#'
+# state space is len(dots) * len(blocks) * len(dots)
+DP = {}
+
+
+def f(springs, conditions, currSpring, currCondition, springLength):
+    key = (currSpring, currCondition, springLength)
+    if key in DP:
+        return DP[key]
+    if currSpring == len(springs):
+        if currCondition == len(conditions) and springLength == 0:
+            return 1
+        elif (
+            currCondition == len(conditions) - 1
+            and conditions[currCondition] == springLength
+        ):
+            return 1
+        else:
+            return 0
+    ans = 0
+    for c in [".", "#"]:
+        if springs[currSpring] == c or springs[currSpring] == "?":
+            if c == "." and springLength == 0:
+                ans += f(springs, conditions, currSpring + 1, currCondition, 0)
+            elif (
+                c == "."
+                and springLength > 0
+                and currCondition < len(conditions)
+                and conditions[currCondition] == springLength
+            ):
+                ans += f(springs, conditions, currSpring + 1, currCondition + 1, 0)
+            elif c == "#":
+                ans += f(
+                    springs, conditions, currSpring + 1, currCondition, springLength + 1
+                )
+    DP[key] = ans
+    return ans
+
+
+for part2 in [False, True]:
+    ans = 0
+    for line in L:
+        dots, blocks = line.split()
+        if part2:
+            dots = "?".join([dots, dots, dots, dots, dots])
+            blocks = ",".join([blocks, blocks, blocks, blocks, blocks])
+        blocks = [int(x) for x in blocks.split(",")]
+        DP.clear()
+        score = f(dots, blocks, 0, 0, 0)
+        # print(dots, blocks, score, len(DP))
+        ans += score
+    print(ans)
