@@ -5,7 +5,8 @@
   "description": "Solutions to Advent of Code 2023",
   "type": "module",
   "scripts": {
-    "start": "NODE_OPTIONS='--max-old-space-size=8192' ts-node --esm"
+    "start": "NODE_OPTIONS='--max-old-space-size=8192' ts-node --esm",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -15,7 +16,10 @@
   "license": "ISC",
   "homepage": "https://github.com/jeffharrington/advent-of-code-2023#readme",
   "devDependencies": {
+    "@types/jest": "^29.5.11",
     "@types/node": "^18.17.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
     "typescript": "^5.3.2"
   },
   "dependencies": {

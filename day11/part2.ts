@@ -78,7 +78,7 @@ function transpose(matrix: string[][]): string[][] {
 /**
  * Main execution function
  */
-function main(filename: string): number {
+export function main(filename: string): number {
     const currentDirectory = dirname(fileURLToPath(import.meta.url));
     const filepath = `${currentDirectory}/${filename}`;
     const fileContent = readFileSync(filepath, "utf-8");
