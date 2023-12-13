@@ -29,9 +29,6 @@ const process = (lines: string[]) => {
                 // Find Columns of Reflection in smudged puzzle
                 const colsOfReflection = getPointsOfReflection(smudgedPuzzle);
                 const colOfReflection = difference(colsOfReflection, origColOfReflection);
-                if(colsOfReflection.size > 1) {
-                    console.log([...colOfReflection], "vs", [...colsOfReflection], "(", [...origColOfReflection], ")");
-                }
                 if (colOfReflection.size == 1) {
                     const colValue = [...colOfReflection][0];
                     return acc + (colValue + 1);

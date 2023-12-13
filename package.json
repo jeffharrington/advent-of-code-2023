@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "NODE_OPTIONS='--max-old-space-size=8192' ts-node --esm",
-    "test": "jest"
+    "test": "jest",
+    "check": "tsc --noEmit"
   },
   "repository": {
     "type": "git",

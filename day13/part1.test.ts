@@ -13,11 +13,9 @@ describe("day13/part1", () => {
 
     it("should reflect", async () => {
         const answer = findPointsOfReflection("#..#".split(""));
-        console.log(answer);
         expect(answer).toEqual(new Set([1]));
 
         const answer2 = findPointsOfReflection("#.##..##.".split(""));
-        console.log(answer2);
         expect(answer2).toEqual(new Set([4, 6]));
     });
 });
