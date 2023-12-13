@@ -1,4 +1,4 @@
-import { main, getPointsOfReflection } from "./part1.js";
+import { main, findPointsOfReflection } from "./part1.js";
 
 describe("day13/part1", () => {
     it("should match test answer", async () => {
@@ -12,11 +12,11 @@ describe("day13/part1", () => {
     });
 
     it("should reflect", async () => {
-        const answer = getPointsOfReflection("#..#".split(""));
+        const answer = findPointsOfReflection("#..#".split(""));
         console.log(answer);
         expect(answer).toEqual(new Set([1]));
 
-        const answer2 = getPointsOfReflection("#.##..##.".split(""));
+        const answer2 = findPointsOfReflection("#.##..##.".split(""));
         console.log(answer2);
         expect(answer2).toEqual(new Set([4, 6]));
     });

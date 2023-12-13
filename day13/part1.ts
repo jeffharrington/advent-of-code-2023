@@ -19,40 +19,13 @@ const process = (lines: string[]) => {
     });
     allPuzzles.push(currPuzzle);
     const sum = allPuzzles.reduce((acc, puzzle) => {
-        const colsOfReflection = puzzle.reduce((acc: Set<number> | null, line) => {
-            const points = getPointsOfReflection(line);
-            if (acc == null) {
-                return points;
-            } else {
-                return new Set([...acc].filter((x) => points.has(x)));
-            }
-        }, null);
-        if (colsOfReflection !== null) {
-            if (colsOfReflection.size > 1) {
-                throw new Error("Multiple cols of reflection!");
-            }
-            if (colsOfReflection.size == 1) {
-                const colValue = colsOfReflection.values().next().value + 1;
-                return acc + colValue; // No need to analyze rows if we have a column of reflection
-            }
+        const colOfReflection = getPointOfReflection(puzzle);
+        if (colOfReflection !== null) {
+            return acc + (colOfReflection + 1);
         }
-        const rowsOfReflection = transpose(puzzle).reduce((acc: Set<number> | null, line) => {
-            const points = getPointsOfReflection(line);
-            if (acc == null) {
-                return points;
-            } else {
-                return new Set([...acc].filter((x) => points.has(x)));
-            }
-        }, null);
+        const rowsOfReflection = getPointOfReflection(transpose(puzzle));
         if (rowsOfReflection !== null) {
-            if (rowsOfReflection.size > 1) {
-                throw new Error("Multiple rows of reflection!");
-            }
-            if (rowsOfReflection.size > 0) {
-                const rowValue = (rowsOfReflection.values().next().value + 1) * 100;
-
-                return acc + rowValue;
-            }
+            return acc + (rowsOfReflection + 1) * 100;
         }
         throw new Error("No reflections found!");
     }, 0);
@@ -63,7 +36,26 @@ function transpose(matrix: string[][]): string[][] {
     return matrix[0].map((_, colIndex) => matrix.map((row) => row[colIndex]));
 }
 
-export function getPointsOfReflection(line: string[]): Set<number> {
+function getPointOfReflection(puzzle: string[][]): number | null {
+    const commonPointsOfReflection = puzzle.reduce((acc: Set<number> | null, line) => {
+        const points = findPointsOfReflection(line);
+        if (acc == null) {
+            return points;
+        } else {
+            return new Set([...acc].filter((x) => points.has(x)));
+        }
+    }, null);
+    if (commonPointsOfReflection !== null) {
+        if (commonPointsOfReflection.size > 1) {
+            throw new Error("Multiple common points of reflection!");
+        } else if (commonPointsOfReflection.size == 1) {
+            return [...commonPointsOfReflection][0];
+        }
+    }
+    return null; // No common points of reflection found
+}
+
+export function findPointsOfReflection(line: string[]): Set<number> {
     return line.reduce((pointsOfReflection, _, index) => {
         let reflection = null;
         let left = index;
