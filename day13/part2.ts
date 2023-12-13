@@ -19,63 +19,33 @@ const process = (lines: string[]) => {
     });
     allPuzzles.push(currPuzzle);
     const sum = allPuzzles.reduce((acc, puzzle, puzzle_index) => {
-        console.log("----------------------------------------------------");
-        console.log("Current sum:", acc);
-        console.log(puzzle.map((row) => row.join("")).join("\n") + "\n");
-        // const origColOfReflection = getPointOfReflection(puzzle);
-        // const origRowOfReflection = getPointOfReflection(transpose(puzzle));
+        // Get original points of reflection
         const origColOfReflection = getPointsOfReflection(puzzle);
         const origRowOfReflection = getPointsOfReflection(transpose(puzzle));
-        console.log("origColOfReflection", origColOfReflection);
-        console.log("origRowOfReflection", origRowOfReflection);
         for (let i = 0; i < puzzle.length; i++) {
             for (let j = 0; j < puzzle[i].length; j++) {
-                // Get original points of reflection
-                // Get smudged points of reflection
                 const smudgedPuzzle = puzzle.map((row) => row.slice());
                 smudgedPuzzle[i][j] = smudgedPuzzle[i][j] === "#" ? "." : "#";
+                // Find Columns of Reflection in smudged puzzle
                 const colsOfReflection = getPointsOfReflection(smudgedPuzzle);
                 const colOfReflection = difference(colsOfReflection, origColOfReflection);
-                if (colOfReflection.size > 1) {
-                    throw new Error("Multiple column points of reflection!");
+                if(colsOfReflection.size > 1) {
+                    console.log([...colOfReflection], "vs", [...colsOfReflection], "(", [...origColOfReflection], ")");
                 }
                 if (colOfReflection.size == 1) {
                     const colValue = [...colOfReflection][0];
-                    console.log("colOfReflection for puzzleCopy", i, j, ":", colValue);
                     return acc + (colValue + 1);
                 }
-                // const colOfReflection = getPointOfReflection(smudgedPuzzle);
-                // if (colOfReflection !== null && colOfReflection !== origColOfReflection) {
-                //     console.log("colOfReflection for puzzleCopy", i, j, ":", colOfReflection);
-                //     return acc + (colOfReflection + 1);
-                // }
+                // Find Rows of Reflection in smudged puzzle
                 const rowsOfReflection = getPointsOfReflection(transpose(smudgedPuzzle));
                 const rowOfReflection = difference(rowsOfReflection, origRowOfReflection);
-                if (rowOfReflection.size > 1) {
-                    throw new Error("Multiple row points of reflection!");
-                }
                 if (rowOfReflection.size == 1) {
                     const rowValue = [...rowOfReflection][0];
-                    console.log("rowOfReflection for puzzleCopy", i, j, ":", rowValue);
                     return acc + (rowValue + 1) * 100;
                 }
-                // const rowOfReflection = getPointOfReflection(transpose(smudgedPuzzle));
-                // if (rowOfReflection !== null && rowOfReflection !== origRowOfReflection) {
-                //     console.log("rowOfReflection for puzzleCopy", i, j, ":", rowOfReflection);
-                //     return acc + (rowOfReflection + 1) * 100;
-                // }
             }
         }
-        if (origColOfReflection !== null && origRowOfReflection.size > 0) {
-            console.log("Using origColOfReflection", origColOfReflection);
-            const colValue = [...origColOfReflection][0];
-            return acc + (colValue + 1);
-        } else if (origRowOfReflection !== null && origRowOfReflection.size > 0) {
-            console.log("Using origRowOfReflection", origRowOfReflection);
-            const rowValue = [...origRowOfReflection][0];
-            return acc + (rowValue + 1) * 100;
-        }
-        throw new Error(`No reflections found for puzzle ${puzzle_index}`);
+        return acc;
     }, 0);
     return sum;
 };
@@ -88,26 +58,6 @@ function difference(setA: Set<number>, setB: Set<number>): Set<number> {
     return new Set([...setA].filter((x) => !setB.has(x)));
 }
 
-function getPointOfReflection(puzzle: string[][]): number | null {
-    const commonPointsOfReflection = puzzle.reduce((acc: Set<number> | null, line) => {
-        const points = findPointsOfReflection(line);
-        if (acc == null) {
-            return points;
-        } else {
-            return new Set([...acc].filter((x) => points.has(x)));
-        }
-    }, null);
-    if (commonPointsOfReflection !== null) {
-        if (commonPointsOfReflection.size > 1) {
-            console.log("Multiple common points of reflection!");
-            return null; // revisit
-        } else if (commonPointsOfReflection.size == 1) {
-            return [...commonPointsOfReflection][0];
-        }
-    }
-    return null; // No common points of reflection found
-}
-
 function getPointsOfReflection(puzzle: string[][]): Set<number> {
     const commonPointsOfReflection = puzzle.reduce((acc: Set<number> | null, line) => {
         const points = findPointsOfReflection(line);
@@ -117,13 +67,8 @@ function getPointsOfReflection(puzzle: string[][]): Set<number> {
             return new Set([...acc].filter((x) => points.has(x)));
         }
     }, null);
-    if (commonPointsOfReflection !== null) {
-        if (commonPointsOfReflection.size > 1) {
-            console.log("Multiple common points of reflection!");
-        }
-        if (commonPointsOfReflection.size > 0) {
-            return commonPointsOfReflection; // revisit
-        }
+    if (commonPointsOfReflection !== null && commonPointsOfReflection?.size > 0) {
+        return commonPointsOfReflection;
     }
     return new Set([]); // No common points of reflection found
 }
