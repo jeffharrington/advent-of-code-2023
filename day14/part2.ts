@@ -10,11 +10,12 @@ const process = (lines: string[]) => {
     let matrix = lines.map((line) => line.split(""));
     const setCycles: Record<string, number> = {};
     const sumCycles: Record<string, number> = {};
+    const targetCycles = 1000000000;
     let cycleStart = null;
     let cycleEnd = null;
     let startingKey = null;
 
-    for (let i = 0; i < 1000000000; i++) {
+    for (let i = 0; i < targetCycles; i++) {
         matrix = tilt(rotateClockwise(matrix)); // Tilt North
         matrix = tilt(rotateClockwise(matrix)); // Tilt West
         matrix = tilt(rotateClockwise(matrix)); // Tilt South
@@ -42,7 +43,7 @@ const process = (lines: string[]) => {
 
     const cycleLength = cycleEnd - cycleStart;
     const trueStart = cycleStart - cycleLength;
-    const target = (1000000000 - trueStart) % cycleLength;
+    const target = (targetCycles - trueStart) % cycleLength;
     const targetIndex = trueStart + target - 1;
 
     return sumCycles[targetIndex];
