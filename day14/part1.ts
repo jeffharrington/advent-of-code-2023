@@ -8,10 +8,7 @@ import { dirname, parse } from "path";
  */
 const process = (lines: string[]) => {
     const matrix = lines.map((line) => line.split(""));
-    console.log(matrix.map((line) => line.join("")).join("\n"));
-    console.log("---");
     const rotatedMatrix = rotateClockwise(matrix); // Rotate North
-    console.log(rotatedMatrix.map((line) => line.join("")).join("\n"));
     const tiltedMatrix = tilt(rotatedMatrix);
     let sum = 0;
     for (let i = 0; i < tiltedMatrix.length; i++) {
@@ -29,12 +26,6 @@ function tilt(matrix: string[][]): string[][] {
     for (let i = 0; i < tiltedMatrix.length; i++) {
         let openStack: number[] = [];
         for (let j = tiltedMatrix.length - 1; j >= 0; j--) {
-            console.log("-------------------------------------------");
-            console.log(
-                `i=${i}, j=${j}, rotatedMatrix[i][j]=${tiltedMatrix[i][j]}, openStack=${openStack}`,
-            );
-            console.log(tiltedMatrix.map((line) => line.join("")).join("\n"));
-            console.log("\n");
             if (tiltedMatrix[i][j] === ".") {
                 openStack.push(j);
             } else if (tiltedMatrix[i][j] === "O") {

@@ -8,139 +8,76 @@ import { dirname, parse } from "path";
  */
 const process = (lines: string[]) => {
     let matrix = lines.map((line) => line.split(""));
-    console.log(matrix.map((line) => line.join("")).join("\n"));
-    console.log("---");
-
     const setCycles: Record<string, number> = {};
-    let lastCycleDirection = "";
+    const sumCycles: Record<string, number> = {};
+    let cycleStart = null;
+    let startingKey = null;
+    let cycleEnd = null;
     for (let i = 0; i < 1000000000; i++) {
-        console.log("Cycle", i + 1);
+        matrix = tilt(rotateClockwise(matrix));  // Tilt North
+        matrix = tilt(rotateClockwise(matrix));  // Tilt West
+        matrix = tilt(rotateClockwise(matrix));  // Tilt South
+        matrix = tilt(rotateClockwise(matrix));  // Tilt East
 
-        lastCycleDirection = "North";
-        let rotatedNorth = rotateClockwise(matrix); // Rotate North
-        let tiltedNorthMatrix = tilt(rotatedNorth);
-        const titledNorthMatrixKey = matrixKey(tiltedNorthMatrix);
-        if (setCycles[titledNorthMatrixKey] !== undefined) {
-            console.log("Cycle detected at tiltedNorthMatrix", setCycles[titledNorthMatrixKey], i + 1);
-            break;
+        const matrixToSum = rotateCounterClockwise(
+            rotateCounterClockwise(rotateCounterClockwise(matrix)),
+        );
+        const sum = sumMatrix(matrixToSum);
+        sumCycles[i] = sum;
+
+        const key = matrixKey(matrix);
+        if (setCycles[key] !== undefined) {
+            console.log("Cycle detected after loop", i);
+            if (cycleStart == null) {
+                cycleStart = i;
+                startingKey = key;
+            } else if (key == startingKey) {
+                cycleEnd = i;
+                break;
+            }
         } else {
-            setCycles[titledNorthMatrixKey] = i;
+            setCycles[key] = i;
         }
-        // console.log("Tilted North...");
-        // console.log(
-        //     rotateCounterClockwise(tiltedNorthMatrix)
-        //         .map((line) => line.join(""))
-        //         .join("\n"),
-        // );
-        // console.log("\n\n");
-        // if (matrixEqual(originalMatrix, rotateCounterClockwise(tiltedNorthMatrix))) {
-        //     console.log("Cycle detected at tiltedNorthMatrix", i);
-        //     break;
-        // }
-
-        lastCycleDirection = "West";
-        let rotatedWestMatrix = rotateClockwise(tiltedNorthMatrix);
-        let tiltedWestMatrix = tilt(rotatedWestMatrix);
-        const tiltedWestMatrixKey = matrixKey(tiltedWestMatrix);
-        if (setCycles[tiltedWestMatrixKey] !== undefined) {
-            console.log("Cycle detected at tiltedWestMatrixKey", setCycles[tiltedWestMatrixKey], i + 1);
-            break;
-        } else {
-            setCycles[tiltedWestMatrixKey] = i;
-        }
-
-        // console.log("Tilted West...");
-        // console.log(
-        //     rotateCounterClockwise(rotateCounterClockwise(tiltedWestMatrix))
-        //         .map((line) => line.join(""))
-        //         .join("\n"),
-        // );
-        // console.log("\n\n");
-        // if (
-        //     matrixEqual(
-        //         originalMatrix,
-        //         rotateCounterClockwise(rotateCounterClockwise(tiltedWestMatrix)),
-        //     )
-        // ) {
-        //     console.log("Cycle detected at tiltedWestMatrix", i);
-        //     break;
-        // }
-
-        lastCycleDirection = "South";
-        let rotatedSouthMatrix = rotateClockwise(tiltedWestMatrix);
-        let tiltedSouthMatrix = tilt(rotatedSouthMatrix);
-        const tiltedSouthMatrixKey = matrixKey(tiltedSouthMatrix);
-        if (setCycles[tiltedSouthMatrixKey] !== undefined) {
-            console.log("Cycle detected at tiltedSouthMatrix", setCycles[tiltedSouthMatrixKey], i + 1);
-            break;
-        } else {
-            setCycles[tiltedSouthMatrixKey] = i;
-        }
-
-        // console.log("Tilted South...");
-        // console.log(
-        //     rotateCounterClockwise(rotateCounterClockwise(rotateCounterClockwise(tiltedSouthMatrix)))
-        //         .map((line) => line.join(""))
-        //         .join("\n"),
-        // );
-        // console.log("\n\n");
-        // if (
-        //     matrixEqual(
-        //         originalMatrix,
-        //         rotateCounterClockwise(
-        //             rotateCounterClockwise(rotateCounterClockwise(tiltedSouthMatrix)),
-        //         ),
-        //     )
-        // ) {
-        //     console.log("Cycle detected at tiltedSouthMatrix", i);
-        //     break;
-        // }
-
-        lastCycleDirection = "East";
-        let rotatedEastMatrix = rotateClockwise(tiltedSouthMatrix);
-        let tiltedEastMatrix = tilt(rotatedEastMatrix);
-        const tiltedEastMatrixKey = matrixKey(tiltedEastMatrix);
-        if (setCycles[tiltedEastMatrixKey] !== undefined) {
-            console.log("Cycle detected at tiltedEastMatrix", setCycles[tiltedEastMatrixKey], i + 1);
-            break;
-        } else {
-            setCycles[tiltedEastMatrixKey] = i;
-        }
-
-        // console.log("Tilted East... Cycle", i + 1);
-        // console.log(
-        //     rotateCounterClockwise(
-        //         rotateCounterClockwise(
-        //             rotateCounterClockwise(rotateCounterClockwise(tiltedEastMatrix)),
-        //         ),
-        //     )
-        //         .map((line) => line.join(""))
-        //         .join("\n"),
-        // );
-        // console.log("\n\n");
-        // if (
-        //     matrixEqual(
-        //         originalMatrix,
-        //         rotateCounterClockwise(
-        //             rotateCounterClockwise(
-        //                 rotateCounterClockwise(rotateCounterClockwise(tiltedEastMatrix)),
-        //             ),
-        //         ),
-        //     )
-        // ) {
-        //     console.log("Cycle detected at tiltedEastMatrix", i);
-        //     break;
-        // }
-
-        matrix = tiltedEastMatrix;
     }
 
-    console.log("lastCycleDirection", lastCycleDirection);
-    console.log(
-        rotateCounterClockwise(tiltedNorthMatrix)
-            .map((line) => line.join(""))
-            .join("\n"),
-    );
+    if (!cycleStart || !cycleEnd) throw new Error("No cycle found!");
+    const cycleLength = cycleEnd - cycleStart;
+    const trueStart = cycleStart - cycleLength;
+    console.log("True Start:", trueStart);
+    console.log("Cycle length", cycleLength);
+    const target = (1000000000 - trueStart) % cycleLength;
+    console.log("Target #", target);
+    const targetIndex = trueStart + target - 1;
+    console.log("Target Index:", targetIndex);
+    console.log("Found:", sumCycles[targetIndex]);
+    return sumCycles[targetIndex];
+    // console.log("lastCycleDirection", lastCycleDirection);
+    // let finalMatrix = null;
+    // if (lastCycleDirection === "North") {
+    //     finalMatrix = matrix;
+    // } else if (lastCycleDirection === "West") {
+    //     finalMatrix = rotateCounterClockwise(matrix);
+    // } else if (lastCycleDirection === "South") {
+    //     finalMatrix = rotateCounterClockwise(rotateCounterClockwise(matrix));
+    // } else if (lastCycleDirection === "East") {
+    //     finalMatrix = rotateCounterClockwise(
+    //         rotateCounterClockwise(rotateCounterClockwise(matrix)),
+    //     );
+    // }
+    // if (!finalMatrix) throw new Error("No final matrix found!");
+    // // console.log("~~~~~ FINAL ~~~~~~~~");
+    // // console.log(finalMatrix.map((line) => line.join("")).join("\n"));
+    // // console.log("\n\n");
+
+    // const sum = sumMatrix(finalMatrix);
+    // return sum;
+};
+
+function matrixKey(matrix: string[][]): string {
+    return matrix.map((x) => x.join("")).join("");
+}
+
+function sumMatrix(matrix: string[][]): number {
     let sum = 0;
     for (let i = 0; i < matrix.length; i++) {
         for (let j = 0; j < matrix.length; j++) {
@@ -150,10 +87,6 @@ const process = (lines: string[]) => {
         }
     }
     return sum;
-};
-
-function matrixKey(matrix: string[][]): string {
-    return matrix.map((x) => x.join("")).join("");
 }
 
 export function matrixEqual(matrixA: string[][], matrixB: string[][]): boolean {
@@ -198,7 +131,7 @@ function tilt(matrix: string[][]): string[][] {
     return tiltedMatrix;
 }
 
-function rotateClockwise(matrix: string[][]): string[][] {
+export function rotateClockwise(matrix: string[][]): string[][] {
     const rows = matrix.length;
     const cols = matrix[0].length;
     // Create a new matrix with the same dimensions
@@ -212,7 +145,7 @@ function rotateClockwise(matrix: string[][]): string[][] {
     return rotatedMatrix;
 }
 
-function rotateCounterClockwise(matrix: string[][]): string[][] {
+export function rotateCounterClockwise(matrix: string[][]): string[][] {
     const rows = matrix.length;
     const cols = matrix[0].length;
     // Create a new matrix with the same dimensions
@@ -239,4 +172,4 @@ export function main(filename: string): number {
     return answer;
 }
 
-main("input.test.txt");
+main("input.txt");
