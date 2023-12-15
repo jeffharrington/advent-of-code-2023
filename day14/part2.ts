@@ -11,19 +11,17 @@ const process = (lines: string[]) => {
     const setCycles: Record<string, number> = {};
     const sumCycles: Record<string, number> = {};
     const targetCycles = 1000000000;
+
+    let startingKey = null;
     let cycleStart = null;
     let cycleEnd = null;
-    let startingKey = null;
 
     for (let i = 0; i < targetCycles; i++) {
         matrix = tilt(rotateClockwise(matrix)); // Tilt North
         matrix = tilt(rotateClockwise(matrix)); // Tilt West
         matrix = tilt(rotateClockwise(matrix)); // Tilt South
         matrix = tilt(rotateClockwise(matrix)); // Tilt East
-
-        sumCycles[i] = sumMatrix(
-            rotateCounterClockwise(rotateCounterClockwise(rotateCounterClockwise(matrix))),
-        );
+        sumCycles[i] = sumMatrix(rotateClockwise(matrix)); // Sum
 
         const key = matrixKey(matrix);
         if (setCycles[key] !== undefined) {
@@ -96,18 +94,6 @@ export function rotateClockwise(matrix: string[][]): string[][] {
     for (let i = 0; i < rows; i++) {
         for (let j = 0; j < cols; j++) {
             rotatedMatrix[j][rows - 1 - i] = matrix[i][j];
-        }
-    }
-    return rotatedMatrix;
-}
-
-export function rotateCounterClockwise(matrix: string[][]): string[][] {
-    const rows = matrix.length;
-    const cols = matrix[0].length;
-    const rotatedMatrix: string[][] = new Array(cols).fill(0).map(() => new Array(rows).fill(0));
-    for (let i = 0; i < rows; i++) {
-        for (let j = 0; j < cols; j++) {
-            rotatedMatrix[cols - 1 - j][i] = matrix[i][j];
         }
     }
     return rotatedMatrix;
