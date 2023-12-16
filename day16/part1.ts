@@ -112,8 +112,11 @@ export function main(filename: string): number {
     const filepath = `${currentDirectory}/${filename}`;
     const fileContent = readFileSync(filepath, "utf-8");
     const lines = fileContent.split("\n");
+    const startTime = new Date().getTime();
     const answer = process(lines);
+    const elapsedTime = new Date().getTime() - startTime;
     console.log(answer);
+    console.log("Finished in", elapsedTime, "ms");
     return answer;
 }
 
