@@ -2,6 +2,10 @@ import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
+/**
+ * Day 16: The Floor Will Be Lava
+ * https://adventofcode.com/2023/day/16
+ */
 enum Direction {
     NORTH = "NORTH",
     EAST = "EAST",
@@ -9,16 +13,12 @@ enum Direction {
     WEST = "WEST",
 }
 
-interface Beam {
+type Beam = {
     row: number;
     col: number;
     dir: Direction;
-}
+};
 
-/**
- * Day 16: The Floor Will Be Lava
- * https://adventofcode.com/2023/day/16
- */
 const process = (lines: string[]) => {
     const matrix = lines.map((line) => line.split(""));
     const numEnergized = reflect(matrix, { row: 0, col: 0, dir: Direction.EAST });

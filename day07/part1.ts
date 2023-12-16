@@ -2,16 +2,16 @@ import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
+/**
+ * Day 7: Camel Cards (Part 1)
+ * https://adventofcode.com/2023/day/7
+ */
 interface Hand {
     cards: string[];
     strength: number;
     bid: number;
 }
 
-/**
- * Day 7: Camel Cards (Part 1)
- * https://adventofcode.com/2023/day/7
- */
 const process = (lines: string[]) => {
     const cardRank = ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"];
     const hands: Hand[] = lines.map((line) => {

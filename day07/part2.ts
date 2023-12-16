@@ -2,6 +2,10 @@ import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
+/**
+ * Day 7: Camel Cards (Part 2)
+ * https://adventofcode.com/2023/day/7
+ */
 interface Hand {
     cards: string[];
     counts: Record<string, number>;
@@ -9,10 +13,6 @@ interface Hand {
     bid: number;
 }
 
-/**
- * Day 7: Camel Cards (Part 2)
- * https://adventofcode.com/2023/day/7
- */
 const process = (lines: string[]) => {
     const cardRank = ["J", "2", "3", "4", "5", "6", "7", "8", "9", "T", "Q", "K", "A"];
     const JOKER_CARD = "J";
