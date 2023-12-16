@@ -13,11 +13,11 @@ enum Direction {
     WEST = "WEST",
 }
 
-interface Beam {
+type Beam = {
     row: number;
     col: number;
     dir: Direction;
-}
+};
 
 const process = (lines: string[]) => {
     const matrix = lines.map((line) => line.split(""));
