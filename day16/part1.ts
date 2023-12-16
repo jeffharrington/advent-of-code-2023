@@ -33,10 +33,7 @@ function reflect(matrix: string[][], startingBeam: Beam) {
         beams.forEach((beam, beamIndex) => {
             energized.add(`${beam.row},${beam.col}`);
             visited.add(`${beam.row},${beam.col},${beam.dir}`);
-            const curr = matrix[beam.row][beam.col];
-            switch (curr) {
-                case ".":
-                    break;
+            switch (matrix[beam.row][beam.col]) {
                 case "/":
                     if (beam.dir === Direction.EAST) {
                         beam.dir = Direction.NORTH;

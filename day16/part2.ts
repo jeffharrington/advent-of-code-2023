@@ -58,8 +58,6 @@ function reflect(matrix: string[][], startingBeam: Beam) {
             energized.add(`${beam.row},${beam.col}`);
             visited.add(`${beam.row},${beam.col},${beam.dir}`);
             switch (matrix[beam.row][beam.col]) {
-                case ".":
-                    break;
                 case "/":
                     if (beam.dir === Direction.EAST) {
                         beam.dir = Direction.NORTH;
