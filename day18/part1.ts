@@ -189,4 +189,9 @@ export function main(filename: string): number {
     return answer;
 }
 
+// 73192 -- Too high
+// 73191 -- Too high
+// 70947 -- Incorrect
+// 70949 -- Incorrect
+
 main("input.txt");
