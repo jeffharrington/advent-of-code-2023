@@ -6,12 +6,6 @@ import { dirname } from "path";
  * Day 18: Lavaduct Lagoon
  * https://adventofcode.com/2023/day/18
  */
-type Cube = {
-    row: number;
-    col: number;
-    color: string;
-};
-
 type Instruction = {
     direction: string;
     steps: number;
@@ -20,157 +14,48 @@ type Instruction = {
 
 const process = (lines: string[]) => {
     const instructions = getInstructions(lines);
-    const trenches: Cube[] = [];
-    const firstInstruction = instructions[0];
-    trenches.push({ row: 0, col: 0, color: firstInstruction.color });
-    let currRow = 0;
-    let currCol = 0;
-    let totalSteps = 0;
-    instructions.forEach((instruction) => {
-        console.log(instruction);
-        totalSteps += instruction.steps;
-        for (let i = 0; i < instruction.steps; i++) {
-            switch (instruction.direction) {
-                case "R":
-                    currCol += 1;
-                    break;
-                case "L":
-                    currCol -= 1;
-                    break;
-                case "U":
-                    currRow -= 1;
-                    break;
-                case "D":
-                    currRow += 1;
-                    break;
-            }
-            // if (currRow < 0 || currCol < 0) {
-            //     throw new Error(`Invalid row or col: ${currRow},${currCol}`);
-            // }
-            trenches.push({ row: currRow, col: currCol, color: instruction.color });
-        }
-    });
-
-    const minRow = trenches.reduce((min, curr) => (curr.row < min ? curr.row : min), 0);
-    const maxRow = trenches.reduce((max, curr) => (curr.row > max ? curr.row : max), 0);
-    const minCol = trenches.reduce((min, curr) => (curr.col < min ? curr.col : min), 0);
-    const maxCol = trenches.reduce((max, curr) => (curr.col > max ? curr.col : max), 0);
-
-    console.log("Min row", minRow, "(", maxRow, ")");
-    console.log("Min col", minCol, "(", maxCol, ")");
-    const width = maxCol - minCol + 1;
-    const height = maxRow - minRow + 1;
-    console.log("Width:", width);
-    console.log("Height:", height);
-    const grid = Array.from({ length: height }, () => Array.from({ length: width }, () => "."));
-    trenches.forEach((cube) => {
-        console.log(cube);
-        const adjustedRow = cube.row - minRow;
-        const adjustedCol = cube.col - minCol;
-        grid[adjustedRow][adjustedCol] = "#";
-    });
-    console.log(grid.map((row) => row.join("")).join("\n"));
-    console.log("\n\n");
-    const numBoundary = countNumTrenches(grid);
-    floodFill(grid);
-    console.log(grid.map((row) => row.join("")).join("\n"));
-    const numTrenches = countNumTrenches(grid);
-    const numInterior = numTrenches - numBoundary;
-    console.log("Num boundary:", numBoundary);
-    console.log("Total steps:", totalSteps);
-    console.log("Num interior:", numInterior);
-    const picks = numInterior + numBoundary / 2 - 1;
-    console.log("Picks:", picks);
-    return numTrenches;
+    const area = getArea(instructions);
+    return area;
 };
 
 function getInstructions(lines: string[]): Instruction[] {
     const regex = /^(.+) (.+) \((.*)\)$/;
-    const instructions: Instruction[] = [];
-    lines.forEach((line) => {
-        console.log(line);
+    const instructions: Instruction[] = lines.map((line) => {
         const matches = regex.exec(line);
-        if (!matches) {
-            console.error("Invalid line", line, "Matches:", matches);
-            return 1;
-        }
-        console.log("Length:", parseInt(matches[2]));
-        instructions.push({
+        if (!matches) throw new Error(`Invalid instruction: ${line}`);
+        return {
             direction: matches[1],
             steps: parseInt(matches[2]),
             color: matches[3],
-        });
+        };
     });
     return instructions;
 }
 
-function countNumTrenches(grid: string[][]): number {
-    let numTrenches = 0;
-    grid.forEach((row) => {
-        row.forEach((col) => {
-            if (col === "#") {
-                numTrenches += 1;
-            }
-        });
+function getArea(instructions: Instruction[]): number {
+    let row = 0;
+    let col = 0;
+    let totalSteps = 0;
+    const DIRECTIONS: Record<string, number[]> = { R: [0, 1], L: [0, -1], U: [-1, 0], D: [1, 0] };
+    const points = instructions.map((instruction) => {
+        const [dRow, dCol] = DIRECTIONS[instruction.direction];
+        row += dRow * instruction.steps;
+        col += dCol * instruction.steps;
+        totalSteps += instruction.steps;
+        return [row, col];
     });
-    return numTrenches;
+    const shoelace = getShoelace(points);
+    return shoelace + totalSteps / 2 + 1;
 }
 
-function floodFill(grid: string[][]) {
-    for (let i = 0; i < grid.length; i++) {
-        for (let j = 0; j < grid[0].length; j++) {
-            if (grid[i][j] === "#") {
-                continue;
-            }
-            const boundNorth = isBoundNorth(grid, i, j);
-            const boundSouth = isBoundSouth(grid, i, j);
-            const boundWest = isBoundWest(grid, i, j);
-            const boundEast = isBoundEast(grid, i, j);
-            if (boundNorth && boundSouth && boundWest && boundEast) {
-                grid[i][j] = "#";
-            }
-        }
+function getShoelace(points: number[][]): number {
+    let sum = 0;
+    for (let i = 0; i < points.length - 1; i++) {
+        const [x1, y1] = points[i];
+        const [x2, y2] = points[i + 1];
+        sum += x1 * y2 - x2 * y1;
     }
-}
-
-function isBoundNorth(grid: string[][], row: number, col: number): boolean {
-    while (row >= 0) {
-        if (grid[row][col] === "#") {
-            return true;
-        }
-        row -= 1;
-    }
-    return false;
-}
-
-function isBoundSouth(grid: string[][], row: number, col: number) {
-    while (row < grid.length) {
-        if (grid[row][col] === "#") {
-            return true;
-        }
-        row += 1;
-    }
-    return false;
-}
-
-function isBoundWest(grid: string[][], row: number, col: number) {
-    while (col >= 0) {
-        if (grid[row][col] === "#") {
-            return true;
-        }
-        col -= 1;
-    }
-    return false;
-}
-
-function isBoundEast(grid: string[][], row: number, col: number) {
-    while (col < grid[0].length) {
-        if (grid[row][col] === "#") {
-            return true;
-        }
-        col += 1;
-    }
-    return false;
+    return Math.abs(sum) / 2;
 }
 
 /**
@@ -188,10 +73,5 @@ export function main(filename: string): number {
     console.log("Finished in", elapsedTime, "ms");
     return answer;
 }
-
-// 73192 -- Too high
-// 73191 -- Too high
-// 70947 -- Incorrect
-// 70949 -- Incorrect
 
 main("input.txt");
