@@ -1,3 +1,4 @@
+import { cloneDeep } from "lodash";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
@@ -15,63 +16,116 @@ type Data = {
 };
 
 type Instruction = {
-    target: string;
-    check: string;
-    value: number;
-    truthy: string | Instruction;
-    falsy: string | Instruction;
+    target: string; // "x", "m", "a", "s"
+    check: string; // "<", ">"
+    value: number; // Value to check against
+    trueBranch: string | Instruction;
+    falseBranch: string | Instruction;
 };
 
-function processInstruction(instruction: string): string | Instruction {
+type InstructionRange = {
+    instruction: string | Instruction;
+    ranges: Record<string, number[]>;
+};
+
+function processInstruction(line: string): string | Instruction {
     const instructionRegex = /^([xmas])([<>])(\d+):(\w*),(.*)$/;
-    const matches = instructionRegex.exec(instruction);
+    const matches = instructionRegex.exec(line);
     if (matches) {
         const [_, target, check, value, truthy, falsy] = matches;
         return {
             target,
             check,
             value: parseInt(value),
-            truthy: processInstruction(truthy),
-            falsy: processInstruction(falsy),
+            trueBranch: processInstruction(truthy),
+            falseBranch: processInstruction(falsy),
         };
     } else {
-        return instruction;
+        return line;
     }
-}
-
-function getInstructionDataset(
-    instruction: Instruction | string,
-    dataset: Record<string, number[]>,
-): Record<string, number[]> {
-    console.log(instruction);
-    if (typeof instruction === "string") {
-        return dataset;
-    }
-    dataset[instruction.target].push(instruction.value + 1);
-    dataset[instruction.target].push(instruction.value - 1);
-    dataset = getInstructionDataset(instruction.truthy, dataset);
-    dataset = getInstructionDataset(instruction.falsy, dataset);
-    return dataset;
 }
 
 const process = (lines: string[]) => {
-    let processingInstructions = true;
+    const dataRegex = /.\=(\d+),.\=(\d+),.\=(\d+),.\=(\d+)/;
+    const dataset: Data[] = [];
     const instructionTree: Record<string, Instruction> = {};
+
+    let processingInstructions = true;
     lines.forEach((line) => {
         if (line.trim() === "") processingInstructions = false;
         if (processingInstructions) {
             const [key, tail] = line.split("{");
-            const [fullInstruction, _] = tail.split("}");
-            instructionTree[key] = processInstruction(fullInstruction) as Instruction;
+            const [instructionLine, _] = tail.split("}");
+            instructionTree[key] = processInstruction(instructionLine) as Instruction;
+        } else {
+            const matches = dataRegex.exec(line);
+            if (matches) {
+                const [_, x, m, a, s] = matches;
+                dataset.push({ x: parseInt(x), m: parseInt(m), a: parseInt(a), s: parseInt(s) });
+            }
         }
     });
-    let dataset: Record<string, number[]> = { x: [], m: [], a: [], s: [] };
-    Object.keys(instructionTree).forEach((key) => {
-        const firstInstruction = instructionTree[key];
-        dataset = getInstructionDataset(firstInstruction, dataset)
+
+    const queue: InstructionRange[] = [];
+    queue.push({
+        instruction: instructionTree["in"],
+        ranges: { x: [1, 4000], m: [1, 4000], a: [1, 4000], s: [1, 4000] },
     });
-    console.log(dataset);
-    return 0;
+
+    let rangeSum = 0;
+    while (queue.length > 0) {
+        const curr = queue.shift();
+        if (curr === undefined) break;
+        const instruction = curr.instruction;
+        if (instruction === "A") {
+            const xValue = curr.ranges["x"][1] - curr.ranges["x"][0] + 1;
+            const mValue = curr.ranges["m"][1] - curr.ranges["m"][0] + 1;
+            const aValue = curr.ranges["a"][1] - curr.ranges["a"][0] + 1;
+            const sValue = curr.ranges["s"][1] - curr.ranges["s"][0] + 1;
+            const possibilities = xValue * mValue * aValue * sValue;
+            rangeSum += possibilities;
+        } else if (instruction === "R") {
+            continue;
+        } else if (typeof instruction === "string") {
+            const next = instructionTree[instruction];
+            queue.push({ instruction: next, ranges: curr.ranges });
+            continue;
+        } else if (instruction.check === "<") {
+            // Push true branch
+            const trueRange = cloneDeep(curr.ranges);
+            trueRange[instruction.target][1] = Math.min(
+                instruction.value - 1,
+                trueRange[instruction.target][1],
+            );
+            queue.push({ instruction: instruction.trueBranch, ranges: trueRange });
+            // Push false branch
+            const falseRange = cloneDeep(curr.ranges);
+            falseRange[instruction.target][0] = Math.max(
+                instruction.value,
+                falseRange[instruction.target][0],
+            );
+            queue.push({ instruction: instruction.falseBranch, ranges: falseRange });
+            // Push false branch
+        } else if (instruction.check === ">") {
+            // Push true branch
+            const trueRange = cloneDeep(curr.ranges);
+            trueRange[instruction.target][0] = Math.max(
+                instruction.value + 1,
+                trueRange[instruction.target][0],
+            );
+            queue.push({ instruction: instruction.trueBranch, ranges: trueRange });
+            // Push false branch
+            const falseRange = cloneDeep(curr.ranges);
+            falseRange[instruction.target][1] = Math.min(
+                instruction.value,
+                falseRange[instruction.target][1],
+            );
+            queue.push({ instruction: instruction.falseBranch, ranges: falseRange });
+        }
+    }
+    console.log("Range sum:", rangeSum);
+
+    return rangeSum;
 };
 
 /**
@@ -90,6 +144,4 @@ export function main(filename: string): number {
     return answer;
 }
 
-main("input.test.txt");
-
-// 184699 too low
+main("input.txt");
