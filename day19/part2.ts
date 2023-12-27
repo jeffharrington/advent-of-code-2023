@@ -72,18 +72,13 @@ const process = (lines: string[]) => {
         ranges: { x: [1, 4000], m: [1, 4000], a: [1, 4000], s: [1, 4000] },
     });
 
-    let rangeSum = 0;
+    const acceptedRanges = [];
     while (queue.length > 0) {
         const curr = queue.shift();
         if (curr === undefined) break;
         const instruction = curr.instruction;
         if (instruction === "A") {
-            const xValue = curr.ranges["x"][1] - curr.ranges["x"][0] + 1;
-            const mValue = curr.ranges["m"][1] - curr.ranges["m"][0] + 1;
-            const aValue = curr.ranges["a"][1] - curr.ranges["a"][0] + 1;
-            const sValue = curr.ranges["s"][1] - curr.ranges["s"][0] + 1;
-            const possibilities = xValue * mValue * aValue * sValue;
-            rangeSum += possibilities;
+            acceptedRanges.push(curr.ranges);
         } else if (instruction === "R") {
             continue;
         } else if (typeof instruction === "string") {
@@ -123,7 +118,15 @@ const process = (lines: string[]) => {
             queue.push({ instruction: instruction.falseBranch, ranges: falseRange });
         }
     }
-    console.log("Range sum:", rangeSum);
+
+    const rangeSum = acceptedRanges.reduce((acc, curr) => {
+        const xValue = curr["x"][1] - curr["x"][0] + 1;
+        const mValue = curr["m"][1] - curr["m"][0] + 1;
+        const aValue = curr["a"][1] - curr["a"][0] + 1;
+        const sValue = curr["s"][1] - curr["s"][0] + 1;
+        const possibilities = xValue * mValue * aValue * sValue;
+        return acc + possibilities;
+    }, 0);
 
     return rangeSum;
 };
