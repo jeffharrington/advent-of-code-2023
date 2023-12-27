@@ -40,10 +40,11 @@ function processInstruction(line: string): string | Instruction {
 }
 
 const process = (lines: string[]) => {
-    let processingInstructions = true;
     const dataRegex = /.\=(\d+),.\=(\d+),.\=(\d+),.\=(\d+)/;
     const dataset: Data[] = [];
     const instructionTree: Record<string, Instruction> = {};
+
+    let processingInstructions = true;
     lines.forEach((line) => {
         if (line.trim() === "") processingInstructions = false;
         if (processingInstructions) {
@@ -65,69 +66,38 @@ const process = (lines: string[]) => {
         let curr: Instruction | null = instructionTree["in"];
         while (curr) {
             const target: number = datum[curr.target];
-            // Check if instruction passed
             let checkPassed = false;
             if (curr.check === "<") {
                 checkPassed = target < curr.value;
             } else if (curr.check === ">") {
                 checkPassed = target > curr.value;
             }
-            if (checkPassed) {
-                switch (curr.trueBranch) {
-                    case "A":
-                        console.log("ACCEPTED!");
-                        accepted.push(datum);
-                        curr = null;
-                        break;
-                    case "R":
-                        console.log("REJECTED!");
-                        curr = null;
-                        break;
-                    default:
-                        if (typeof curr.trueBranch === "string") {
-                            console.log("Going to", curr.trueBranch);
-                            console.log("---------");
-                            curr = instructionTree[curr.trueBranch];
-                        } else {
-                            console.log("Going deeper...");
-                            console.log("---------");
-                            curr = curr.trueBranch;
-                        }
-                        break;
-                }
-            } else {
-                switch (curr.falseBranch) {
-                    case "A":
-                        console.log("ACCEPTED!");
-                        accepted.push(datum);
-                        curr = null;
-                        break;
-                    case "R":
-                        console.log("REJECTED!");
-                        curr = null;
-                        break;
-                    default:
-                        if (typeof curr.falseBranch === "string") {
-                            console.log("Going to", curr.falseBranch);
-                            console.log("---------");
-                            curr = instructionTree[curr.falseBranch];
-                        } else {
-                            console.log("Going deeper...");
-                            console.log("---------");
-                            curr = curr.falseBranch;
-                        }
-                        break;
-                }
+            const nextBranch: string | Instruction = checkPassed
+                ? curr.trueBranch
+                : curr.falseBranch;
+            switch (nextBranch) {
+                case "A":
+                    accepted.push(datum);
+                    curr = null;
+                    break;
+                case "R":
+                    curr = null;
+                    break;
+                default:
+                    if (typeof nextBranch === "string") {
+                        curr = instructionTree[nextBranch];
+                    } else {
+                        curr = nextBranch;
+                    }
+                    break;
             }
         }
     });
-    console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-    console.log("ACCEPTED");
-    console.log(accepted);
-    let sum = 0;
-    accepted.forEach((datum) => {
-        sum += datum.x + datum.m + datum.a + datum.s;
-    });
+
+    const sum = accepted.reduce((acc, curr) => {
+        return acc + curr.x + curr.m + curr.a + curr.s;
+    }, 0);
+
     return sum;
 };
 
@@ -148,5 +118,3 @@ export function main(filename: string): number {
 }
 
 main("input.txt");
-
-// 184699 too low
