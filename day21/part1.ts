@@ -44,7 +44,6 @@ const process = (lines: string[]) => {
             }
         });
     }
-    console.log(coordinates);
     return coordinates.size;
 };
 
