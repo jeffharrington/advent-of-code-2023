@@ -13,7 +13,7 @@ type Module = {
     type: string; // broadcaster, flipFlop, conjunction,
     inputs: string[];
     outputs: string[];
-    state: Record<string, boolean>; // true or false
+    state: Record<string, boolean>;
 };
 
 type Press = {
@@ -26,7 +26,6 @@ const process = (lines: string[]) => {
     const modules: Record<string, Module> = {};
 
     lines.forEach((line) => {
-        console.log(line);
         const [left, right] = line.split(" -> ");
         let moduleKey = "";
         let moduleType = ""; // broadcaster, flipFlop, conjunction,
@@ -68,19 +67,15 @@ const process = (lines: string[]) => {
         }
     });
 
-    console.log(modules);
-
-    const pulseTotals = { true: 0, false: 0 };
+    const pulseCounts: Record<string, number> = { true: 0, false: 0 };
+    const queue: Press[] = [];
 
     for (let i = 0; i < 1000; i++) {
-        const queue: Press[] = [];
-        const pulseCounts: Record<string, number> = { true: 0, false: 0 };
         queue.push({ from: "button", to: "broadcaster", pulse: LOW });
         while (queue.length > 0) {
             const press = queue.shift();
             if (press == undefined) break;
             pulseCounts[press.pulse.toString()] += 1;
-            console.log(press?.from, press?.pulse ? "-high->" : "-low->", press?.to);
             const module = modules[press.to];
             let nextPulse = press.pulse;
             if (module.type == "broadcaster") {
@@ -100,16 +95,10 @@ const process = (lines: string[]) => {
                 queue.push({ from: press.to, pulse: nextPulse, to: node });
             });
         }
-        pulseTotals["true"] += pulseCounts["true"];
-        pulseTotals["false"] += pulseCounts["false"];
     }
 
-    return pulseTotals["true"] * pulseTotals["false"];
+    return pulseCounts["true"] * pulseCounts["false"];
 };
-
-function logPulse(pulse: boolean) {
-    console.log(`Pulse: ${pulse ? "HIGH" : "LOW"}`);
-}
 
 /**
  * Main execution function
