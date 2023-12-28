@@ -8,11 +8,11 @@ import { dirname } from "path";
  */
 const process = (lines: string[]) => {
     const squares: Record<string, number[][]> = {};
-
-    console.log("Creating matrix...");
-    const matrixBound = 310;
-    const matrix = Array.from({ length: matrixBound }, () =>
-        Array.from({ length: matrixBound }, () => Array.from({ length: matrixBound }, () => ".")),
+    const xBound = 10;
+    const yBound = 10;
+    const zBound = 310; // Based on input data
+    const matrix = Array.from({ length: xBound }, () =>
+        Array.from({ length: yBound }, () => Array.from({ length: zBound }, () => ".")),
     );
 
     // Initialize the ground level
@@ -38,24 +38,15 @@ const process = (lines: string[]) => {
         squares[index.toString()] = points;
     });
 
-    console.log("Falling bricks for the first time...");
     fallBricks(squares, matrix);
 
-    const sortedSquares = Object.keys(squares).sort((a, b) => {
-        const [x1, y1, z1] = squares[a][0];
-        const [x2, y2, z2] = squares[b][0];
-        return z2 - z1;
-    });
-    console.log("Sorted squares", sortedSquares);
-
     const supportingMap: Record<string, string[]> = {};
-    sortedSquares.forEach((key) => {
+    Object.keys(squares).forEach((key) => {
         const values = squares[key];
         const blocksBelow = values.map(([x, y, z]) => matrix[x][y][z - 1]);
         const uniqueBlocks = new Set(blocksBelow.filter((block) => block !== "." && block !== key));
         supportingMap[key] = Array.from(uniqueBlocks);
     });
-    console.log("Supporting map", supportingMap);
 
     const blocksThatCannotBeDisintegrated = new Set<string>();
     Object.keys(supportingMap).forEach((key) => {
@@ -64,22 +55,17 @@ const process = (lines: string[]) => {
             blocksThatCannotBeDisintegrated.add(values[0]);
         }
     });
-    console.log("Blocks that cannot be disintegrated", blocksThatCannotBeDisintegrated);
 
     let sumFell = 0;
     blocksThatCannotBeDisintegrated.forEach((key, index) => {
-        console.log("Cloning squares and matrix... (", index, ")", key);
         const squaresCopy = { ...squares };
         const matrixCopy = matrix.map((level2) => level2.map((row) => [...row]));
-        console.log("Cloned!");
         squaresCopy[key].forEach(([x, y, z]) => {
             matrixCopy[x][y][z] = ".";
         });
-        console.log("Disintegrated", key);
         delete squaresCopy[key];
         const numFell = fallBricks(squaresCopy, matrixCopy);
         sumFell += numFell;
-        console.log("Disintegrated", key, "and", numFell, "fell");
     });
 
     return sumFell;

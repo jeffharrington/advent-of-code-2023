@@ -8,13 +8,16 @@ import { dirname } from "path";
  */
 const process = (lines: string[]) => {
     const squares: Record<string, number[][]> = {};
-    const matrix = Array.from({ length: 1000 }, () =>
-        Array.from({ length: 1000 }, () => Array.from({ length: 1000 }, () => ".")),
+    const xBound = 10;
+    const yBound = 10;
+    const zBound = 310; // Based on input data
+    const matrix = Array.from({ length: xBound }, () =>
+        Array.from({ length: yBound }, () => Array.from({ length: zBound }, () => ".")),
     );
 
     // Initialize the ground level
     for (let i = 0; i < matrix.length; i++) {
-        for (let j = 0; j < 1000; j++) {
+        for (let j = 0; j < matrix[0].length; j++) {
             matrix[i][j][0] = "-";
         }
     }
@@ -35,9 +38,9 @@ const process = (lines: string[]) => {
         squares[index.toString()] = points;
     });
 
-    let squaresMoved = true;
-    while (squaresMoved) {
-        squaresMoved = false;
+    let squareFell = true;
+    while (squareFell) {
+        squareFell = false;
         Object.keys(squares)
             .reverse()
             .forEach((key) => {
@@ -47,7 +50,7 @@ const process = (lines: string[]) => {
                         z > 1 && (matrix[x][y][z - 1] === "." || matrix[x][y][z - 1] === key),
                 );
                 if (canMoveDown) {
-                    squaresMoved = true;
+                    squareFell = true;
                     squares[key].forEach(([x, y, z]) => {
                         matrix[x][y][z] = ".";
                         matrix[x][y][z - 1] = key;
@@ -57,14 +60,8 @@ const process = (lines: string[]) => {
             });
     }
 
-    const sortedSquares = Object.keys(squares).sort((a, b) => {
-        const [x1, y1, z1] = squares[a][0];
-        const [x2, y2, z2] = squares[b][0];
-        return z2 - z1;
-    });
-
     const supportingMap: Record<string, string[]> = {};
-    sortedSquares.forEach((key) => {
+    Object.keys(squares).forEach((key) => {
         const values = squares[key];
         const blocksBelow = values.map(([x, y, z]) => matrix[x][y][z - 1]);
         const uniqueBlocks = new Set(blocksBelow.filter((block) => block !== "." && block !== key));
