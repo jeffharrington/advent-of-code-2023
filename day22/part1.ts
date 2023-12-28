@@ -8,7 +8,6 @@ import { dirname } from "path";
  */
 const process = (lines: string[]) => {
     const squares: Record<string, number[][]> = {};
-
     const matrix = Array.from({ length: 1000 }, () =>
         Array.from({ length: 1000 }, () => Array.from({ length: 1000 }, () => ".")),
     );
@@ -69,10 +68,8 @@ const process = (lines: string[]) => {
         const values = squares[key];
         const blocksBelow = values.map(([x, y, z]) => matrix[x][y][z - 1]);
         const uniqueBlocks = new Set(blocksBelow.filter((block) => block !== "." && block !== key));
-        console.log(key, "has below it", uniqueBlocks);
         supportingMap[key] = Array.from(uniqueBlocks);
     });
-    console.log("Supporting map:", supportingMap);
 
     const blocksThatCannotBeDisintegrated = new Set();
     Object.keys(supportingMap).forEach((key) => {
@@ -81,10 +78,9 @@ const process = (lines: string[]) => {
             blocksThatCannotBeDisintegrated.add(values[0]);
         }
     });
-    console.log(blocksThatCannotBeDisintegrated);
 
-    const numThatCanBeDisintegrated =
-        Object.keys(supportingMap).length - blocksThatCannotBeDisintegrated.size;
+    const totalNumOfBlocks = Object.keys(supportingMap).length;
+    const numThatCanBeDisintegrated = totalNumOfBlocks - blocksThatCannotBeDisintegrated.size;
     return numThatCanBeDisintegrated;
 };
 
