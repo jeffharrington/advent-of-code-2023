@@ -15,9 +15,7 @@ const process = (lines: string[]) => {
     const matrix = lines.map((line) => line.split(""));
     const startingPoint = lines.reduce((acc: number[][], line, row) => {
         const col = line.indexOf("S");
-        if (col !== -1) {
-            acc.push([row, col]);
-        }
+        if (col !== -1) acc.push([row, col]);
         return acc;
     }, [])[0];
     const queue: Item[] = [];

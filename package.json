@@ -29,6 +29,7 @@
   "dependencies": {
     "bun": "^1.0.15",
     "lodash": "^4.17.21",
+    "mathjs": "^12.2.1",
     "nstall": "^0.2.0"
   },
   "engines": {

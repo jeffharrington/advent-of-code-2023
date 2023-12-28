@@ -1,6 +1,7 @@
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import * as math from "mathjs";
 
 /**
  * Day 21: Step Counter
@@ -9,22 +10,39 @@ import { dirname } from "path";
 type Item = {
     coord: number[];
     step: number;
-    parity: boolean;
 };
 
 const process = (lines: string[]) => {
-    const matrix = lines.map((line) => line.split(""));
-    const startingPoint = lines.reduce((acc: number[][], line, row) => {
-        const col = line.indexOf("S");
-        if (col !== -1) {
-            acc.push([row, col]);
-        }
-        return acc;
-    }, [])[0];
+    const initialMatrix = lines.map((line) => line.split(""));
+    let matrix: string[][] = [];
+    for (let i = 0; i < 5; i++) {
+        initialMatrix.forEach((line) => {
+            const newLine = line.map((char) => (char === "S" ? "." : char));
+            matrix.push([...newLine, ...newLine, ...newLine, ...newLine, ...newLine]);
+        });
+    }
+    const startingPoint = [Math.trunc(matrix.length / 2), Math.trunc(matrix[0].length / 2)];
+    // Stolen from: https://gist.github.com/dllu/0ca7bfbd10a199f69bcec92f067ec94c#file-21-py-L69
+    const a0 = stepFn(matrix, startingPoint, 65);
+    const a1 = stepFn(matrix, startingPoint, 65 + 131);
+    const a2 = stepFn(matrix, startingPoint, 65 + 2 * 131);
+    const vandermonde = math.matrix([
+        [0, 0, 1],
+        [1, 1, 1],
+        [4, 2, 1],
+    ]);
+    const b = math.flatten(math.matrix([[a0, a1, a2]]));
+    const xs = math.flatten(math.lusolve(vandermonde, b).toArray());
+    const n = 202300;
+    const [x0, x1, x2] = xs as number[];
+    const result = x0 * n * n + x1 * n + x2;
+    return result;
+};
+
+function stepFn(matrix: string[][], startingPoint: number[], stepGoal: number) {
     const queue: Item[] = [];
-    const stepGoal = 50;
     const coordinates = new Set();
-    queue.push({ coord: startingPoint, step: 0, parity: stepGoal % 2 === 0 });
+    queue.push({ coord: startingPoint, step: 0 });
     while (queue.length > 0) {
         const curr = queue.shift();
         if (curr === undefined) break;
@@ -34,56 +52,37 @@ const process = (lines: string[]) => {
             coordinates.add(coordKey);
             continue;
         }
-        if (curr.parity === (stepGoal % 2 === 0) && curr.step % 2 === stepGoal % 2) {
+        if (curr.step % 2 === stepGoal % 2) {
             // Same parity
             coordinates.add(coordKey);
-        } else if (curr.parity !== (stepGoal % 2 === 0) && curr.step % 2 !== stepGoal % 2) {
-            // Different parity
-            coordinates.add(coordKey);
         }
-
-        const nextCoords = neighbors(curr.coord);
+        const nextCoords = validNeighbors(matrix, curr.coord);
         nextCoords.forEach((nextCoord) => {
-            let adjustedX = 0;
-            if (nextCoord[0] < 0) {
-                adjustedX = (matrix.length + (nextCoord[0] % matrix.length)) % matrix.length;
-            } else {
-                adjustedX = nextCoord[0] % matrix.length;
-            }
-            let adjustedY = 0;
-            if (nextCoord[1] < 0) {
-                adjustedY =
-                    (matrix[0].length + (nextCoord[1] % matrix[0].length)) % matrix[0].length;
-            } else {
-                adjustedY = nextCoord[1] % matrix[0].length;
-            }
-            const numParitySwitch =
-                Math.trunc(nextCoord[0] / matrix.length) +
-                Math.trunc(nextCoord[1] / matrix[0].length);
-            let nexParity = curr.parity;
-            if (numParitySwitch % 2 === 0) {
-                nexParity = curr.parity;
-            } else {
-                nexParity = !curr.parity;
-            }
-            // console.log(nextCoord, "->", [adjustedX, adjustedY]);
-            if (matrix[adjustedX][adjustedY] === ".") {
-                queue.push({ coord: nextCoord, step: curr.step + 1, parity: nexParity });
+            if (matrix[nextCoord[0]][nextCoord[1]] === ".") {
+                queue.push({ coord: nextCoord, step: curr.step + 1 });
             }
         });
     }
-    // console.log(coordinates);
     return coordinates.size;
-};
+}
 
-function neighbors(coord: number[]) {
+function validNeighbors(matrix: string[][], coord: number[]) {
     const NORTH = [-1, 0];
     const SOUTH = [1, 0];
     const EAST = [0, 1];
     const WEST = [0, -1];
     return [NORTH, SOUTH, EAST, WEST].flatMap(([dx, dy]) => {
-        const nextCoord = [coord[0] + dx, coord[1] + dy];
-        return [nextCoord];
+        if (
+            coord[0] + dx >= 0 &&
+            coord[0] + dx < matrix.length &&
+            coord[1] + dy >= 0 &&
+            coord[1] + dy < matrix[0].length
+        ) {
+            const nextCoord = [coord[0] + dx, coord[1] + dy];
+            return [nextCoord];
+        } else {
+            return [];
+        }
     });
 }
 
@@ -103,4 +102,4 @@ export function main(filename: string): number {
     return answer;
 }
 
-main("input.test.txt");
+main("input.txt");
