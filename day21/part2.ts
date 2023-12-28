@@ -9,6 +9,7 @@ import { dirname } from "path";
 type Item = {
     coord: number[];
     step: number;
+    parity: boolean;
 };
 
 const process = (lines: string[]) => {
@@ -21,9 +22,9 @@ const process = (lines: string[]) => {
         return acc;
     }, [])[0];
     const queue: Item[] = [];
-    const stepGoal = 64;
+    const stepGoal = 50;
     const coordinates = new Set();
-    queue.push({ coord: startingPoint, step: 0 });
+    queue.push({ coord: startingPoint, step: 0, parity: stepGoal % 2 === 0 });
     while (queue.length > 0) {
         const curr = queue.shift();
         if (curr === undefined) break;
@@ -33,38 +34,56 @@ const process = (lines: string[]) => {
             coordinates.add(coordKey);
             continue;
         }
-        if (curr.step % 2 === stepGoal % 2) {
+        if (curr.parity === (stepGoal % 2 === 0) && curr.step % 2 === stepGoal % 2) {
             // Same parity
             coordinates.add(coordKey);
+        } else if (curr.parity !== (stepGoal % 2 === 0) && curr.step % 2 !== stepGoal % 2) {
+            // Different parity
+            coordinates.add(coordKey);
         }
-        const nextCoords = validNeighbors(matrix, curr.coord);
+
+        const nextCoords = neighbors(curr.coord);
         nextCoords.forEach((nextCoord) => {
-            if (matrix[nextCoord[0]][nextCoord[1]] === ".") {
-                queue.push({ coord: nextCoord, step: curr.step + 1 });
+            let adjustedX = 0;
+            if (nextCoord[0] < 0) {
+                adjustedX = (matrix.length + (nextCoord[0] % matrix.length)) % matrix.length;
+            } else {
+                adjustedX = nextCoord[0] % matrix.length;
+            }
+            let adjustedY = 0;
+            if (nextCoord[1] < 0) {
+                adjustedY =
+                    (matrix[0].length + (nextCoord[1] % matrix[0].length)) % matrix[0].length;
+            } else {
+                adjustedY = nextCoord[1] % matrix[0].length;
+            }
+            const numParitySwitch =
+                Math.trunc(nextCoord[0] / matrix.length) +
+                Math.trunc(nextCoord[1] / matrix[0].length);
+            let nexParity = curr.parity;
+            if (numParitySwitch % 2 === 0) {
+                nexParity = curr.parity;
+            } else {
+                nexParity = !curr.parity;
+            }
+            // console.log(nextCoord, "->", [adjustedX, adjustedY]);
+            if (matrix[adjustedX][adjustedY] === ".") {
+                queue.push({ coord: nextCoord, step: curr.step + 1, parity: nexParity });
             }
         });
     }
-    console.log(coordinates);
+    // console.log(coordinates);
     return coordinates.size;
 };
 
-function validNeighbors(matrix: string[][], coord: number[]) {
+function neighbors(coord: number[]) {
     const NORTH = [-1, 0];
     const SOUTH = [1, 0];
     const EAST = [0, 1];
     const WEST = [0, -1];
     return [NORTH, SOUTH, EAST, WEST].flatMap(([dx, dy]) => {
-        if (
-            coord[0] + dx >= 0 &&
-            coord[0] + dx < matrix.length &&
-            coord[1] + dy >= 0 &&
-            coord[1] + dy < matrix[0].length
-        ) {
-            const nextCoord = [coord[0] + dx, coord[1] + dy];
-            return [nextCoord];
-        } else {
-            return [];
-        }
+        const nextCoord = [coord[0] + dx, coord[1] + dy];
+        return [nextCoord];
     });
 }
 
@@ -84,4 +103,4 @@ export function main(filename: string): number {
     return answer;
 }
 
-main("input.txt");
+main("input.test.txt");
