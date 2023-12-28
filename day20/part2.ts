@@ -13,7 +13,7 @@ type Module = {
     type: string; // broadcaster, flipFlop, conjunction,
     inputs: string[];
     outputs: string[];
-    state: Record<string, boolean>; // true or false
+    state: Record<string, boolean>;
 };
 
 type Press = {
@@ -42,12 +42,10 @@ const process = (lines: string[]) => {
             moduleKey = left.slice(1);
             moduleType = "conjunction";
             moduleState = {};
-        } else {
-            throw new Error(`Unknown module type: ${left} -> ${right}`);
         }
         const module = modules[moduleKey] || {};
         module.type = moduleType;
-        module.state = moduleState;
+        module.state = module.state || moduleState;
         module.outputs = right.split(", ");
         module.outputs.forEach((outputKey) => {
             const outputModule = modules[outputKey] || {};
@@ -68,25 +66,28 @@ const process = (lines: string[]) => {
     });
 
     const vdCounts: Record<string, number> = {};
-    let rxCycle = 0; // lowest common multiple
     const queue: Press[] = [];
+    let rxCycle = 0; // lowest common multiple of RX press
+    const targetConjunction = modules["rx"].inputs[0];
 
-    for (let i = 0; i < 10000000; i++) {
+    for (let i = 0; i < Infinity; i++) {
         if (rxCycle !== 0) break;
 
-        queue.push({ from: "button", to: "broadcaster", pulse: LOW });
+        queue.push({ from: "button", to: "broadcaster", pulse: LOW }); // Button press
         while (queue.length > 0) {
             const press = queue.shift();
             if (press == undefined) break;
-            if (press.to === "vd" && press.pulse === HIGH) {
-                vdCounts[press.from] = Math.min(vdCounts[press.from] || Infinity, i + 1);
+
+            if (press.to === targetConjunction && press.pulse === HIGH) {
+                vdCounts[press.from] = vdCounts[press.from] || Infinity;
+                vdCounts[press.from] = Math.min(vdCounts[press.from], i + 1);
                 if (
-                    modules["vd"].inputs.every((input) => {
+                    modules[targetConjunction].inputs.every((input) => {
                         return !!vdCounts[input];
                     })
                 ) {
                     rxCycle = findLCM(Object.values(vdCounts));
-                    break;
+                    queue.splice(0, queue.length); // Clear queue
                 }
             }
             const currModule = modules[press.to];
@@ -109,7 +110,6 @@ const process = (lines: string[]) => {
             });
         }
     }
-
     return rxCycle;
 };
 

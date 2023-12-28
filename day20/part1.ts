@@ -42,8 +42,6 @@ const process = (lines: string[]) => {
             moduleKey = left.slice(1);
             moduleType = "conjunction";
             moduleState = {};
-        } else {
-            throw new Error(`Unknown module type: ${left} -> ${right}`);
         }
         const module = modules[moduleKey] || {};
         module.type = moduleType;
