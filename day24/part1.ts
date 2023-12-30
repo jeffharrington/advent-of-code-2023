@@ -3,8 +3,8 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 
 /**
- * Day XX:
- * https://adventofcode.com/2023/day/XX
+ * Day 24: Never Tell Me The Odds
+ * https://adventofcode.com/2023/day/24
  */
 const process = (lines: string[]) => {
     const lineEquations: number[][] = [];
@@ -14,19 +14,15 @@ const process = (lines: string[]) => {
         const [dx, dy, dz] = right.split(", ").map((n) => parseInt(n));
         const point1 = [x, y];
         const point2 = [x + dx, y + dy];
-        const m = (point2[1] - point1[1]) / (point2[0] - point1[0]);
-        const b = point1[1] - m * point1[0];
+        const m = (point2[1] - point1[1]) / (point2[0] - point1[0]); // slope
+        const b = point1[1] - m * point1[0]; // y-intercept
         lineEquations.push([m, b, x, y, z, dx, dy, dz]);
     });
-
     let count = 0;
     const min = 200000000000000;
     const max = 400000000000000;
     for (let i = 0; i < lineEquations.length; i++) {
         for (let j = i + 1; j < lineEquations.length; j++) {
-            if (i === j) {
-                continue;
-            }
             const intersectionPoint = intersection(lineEquations[i], lineEquations[j]);
             if (intersectionPoint) {
                 const [intersectionX, intersectionY] = intersectionPoint;
