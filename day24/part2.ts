@@ -1,4 +1,4 @@
-import { link, readFileSync } from "fs";
+import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
@@ -7,15 +7,17 @@ import { dirname } from "path";
  * https://adventofcode.com/2023/day/24
  */
 const process = (lines: string[]) => {
-    const points: number[][] = [];
-    const velocities: number[][] = [];
-    lines.forEach((line) => {
-        const [left, right] = line.split(" @ ");
-        const [x, y, z] = left.split(", ").map((n) => parseInt(n));
-        const [dx, dy, dz] = right.split(", ").map((n) => parseInt(n));
-        points.push([x, y, z]);
-        velocities.push([dx, dy, dz]);
-    });
+    const [points, velocities] = lines.reduce(
+        (acc: number[][][], line) => {
+            const [left, right] = line.split(" @ ");
+            const [x, y, z] = left.split(", ").map((n) => parseInt(n));
+            const [dx, dy, dz] = right.split(", ").map((n) => parseInt(n));
+            const points = [...acc[0], [x, y, z]] as number[][];
+            const velocities = [...acc[1], [dx, dy, dz]] as number[][];
+            return [points, velocities];
+        },
+        [[], []],
+    );
     // Solution cribbed from https://www.reddit.com/r/adventofcode/comments/18pnycy/comment/kersplf/
     const n = points.length;
     const v1 = velocities[0];
