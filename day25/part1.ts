@@ -8,8 +8,7 @@ import { dirname } from "path";
  */
 const process = (lines: string[]) => {
     // Solution cribbed from https://www.reddit.com/r/adventofcode/comments/18qbsxs/comment/ketzp94/
-    const graph: Record<string, Set<string>> = {};
-    lines.forEach((line) => {
+    const graph = lines.reduce((graph: Record<string, Set<string>>, line) => {
         const [key, right] = line.split(": ");
         const children = right.split(" ");
         graph[key] = graph[key] || new Set();
@@ -18,41 +17,35 @@ const process = (lines: string[]) => {
             graph[child].add(key);
             graph[key].add(child);
         });
-    });
+        return graph;
+    }, {});
     const allVertices = new Set<string>(Object.keys(graph));
-
-    let sum = sumArray(
-        Array.from(allVertices).map((v) => count_uncommon_neighbors(graph, allVertices, v)),
-    );
-    while (sum !== 3) {
-        let vertexToRemove = "";
-        let maxCount = -1;
-        Array.from(allVertices).forEach((v) => {
-            const c = count_uncommon_neighbors(graph, allVertices, v);
-            if (c >= maxCount) {
-                vertexToRemove = v;
-                maxCount = c;
-            }
-        });
-        allVertices.delete(vertexToRemove);
-        sum = sumArray(
-            Array.from(allVertices).map((v) => count_uncommon_neighbors(graph, allVertices, v)),
-        );
-    }
-    const result = allVertices.size * difference(new Set(Object.keys(graph)), allVertices).size;
+    const trimmedVertices = trimVertices(graph, allVertices);
+    const result = trimmedVertices.size * difference(allVertices, trimmedVertices).size;
     return result;
 };
 
-function sumArray(arr: number[]) {
-    return arr.reduce((acc, curr) => acc + curr, 0);
+function trimVertices(graph: Record<string, Set<string>>, vertices: Set<string>) {
+    if (sumArray(Array.from(vertices).map((v) => difference(graph[v], vertices).size)) === 3) {
+        return vertices;
+    }
+    const [vertexToRemove, _] = Array.from(vertices).reduce(
+        (max: [string, number], vertex) => {
+            const numUncommonNeighbors = difference(graph[vertex], vertices).size;
+            if (numUncommonNeighbors >= max[1]) {
+                return [vertex, numUncommonNeighbors] as [string, number];
+            } else {
+                return max;
+            }
+        },
+        ["", -1],
+    );
+    let trimmedVertices = new Set([...vertices].filter((v) => v !== vertexToRemove));
+    return trimVertices(graph, trimmedVertices);
 }
 
-function count_uncommon_neighbors(
-    graph: Record<string, Set<string>>,
-    common_set: Set<string>,
-    vertex: string,
-) {
-    return difference(graph[vertex], common_set).size;
+function sumArray(arr: number[]) {
+    return arr.reduce((acc, curr) => acc + curr, 0);
 }
 
 function difference(setA: Set<string>, setB: Set<string>): Set<string> {
